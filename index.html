@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Can I exit?</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/radar.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+
+    <div id="sideDrawer" class="drawer" role="dialog" aria-modal="true" aria-label="תפריט">
+      <div class="drawer-header">
+        <!-- <span class="drawer-title"></span> -->
+        <button id="closeDrawerBtn" type="button" aria-label="סגור תפריט">✕</button>
+      </div>
+      <div class="drawer-content">
+        </div>
+    </div>
+
+    <div id="drawerOverlay" class="drawer-overlay"></div>
+
+    <div id="app">
+
+      <header id="siteTopBar">
+         <div id="disclaimer">
+          <div id="disclaimerText">האתר אינו מקור רשמי. יש להשמע תמיד להנחיות פיקוד העורף.</div>
+          <div>
+            <a href="https://www.oref.org.il/" target="_blank"
+             rel="noopener noreferrer">לאתר פיקוד העורף</a>
+          </div>
+        </div>
+
+          <nav id="siteNav">
+            <h1>כבר אפשר לצאת מהמרחב המוגן?</h1>
+              <div id="desktopNavArea">
+              </div>
+
+              <div id="mobileNavArea">
+                <button id="menuToggleBtn" type="button" aria-label="תפריט" aria-expanded="false" aria-controls="sideDrawer">
+                  ☰
+                </button>
+
+                <div id="currentScreenTitle">
+                </div>
+
+                <div id="mobileSearchArea">
+                  <div id="mobileSearchBox">
+                    <input id="mobileQ" type="text" placeholder="חפש מקום או אזור" aria-label="חפש מקום או אזור" />
+                    <button id="mobileClear" type="button" aria-label="נקה חיפוש">נקה</button>
+                  </div>
+                </div>
+
+                <button id="searchToggleBtn" type="button" aria-label="חיפוש" aria-expanded="false" aria-controls="mobileSearchArea">
+                  🔍
+                </button>
+              </div>
+
+              <div id="controls">
+                <div id="searchControls">
+                  <div id="searchBox">
+                  <input id="q" type="text" placeholder="חפש מקום או אזור" aria-label="חפש מקום או אזור" />
+                  <button id="clear" type="button" aria-label="נקה חיפוש">נקה</button>
+                  <button id="closeSearch" type="button" aria-label="סגור חיפוש">✕</button>
+                </div>
+                <span
+                  id="syncIndicator"
+                  class="is-success"
+                  aria-hidden="true"
+                  title="Connection status"
+                ></span>
+              </div>
+
+                <div id="navControls" class="drawer-nav">
+                  <button id="showFavorites" type="button">המקומות שלי</button>
+                  <button id="showAll" type="button">הצג הכל</button>
+                  <button id="goHomeBtn" type="button" hidden>דף הבית</button>
+                </div>
+              </div>
+
+          </nav>
+
+          <div id="messages">
+          <div id="serverWarning" role="alert"></div>
+        </div>
+
+      </header>
+
+      <main id="mainContent">
+
+        <div id="utilityPanelsNav">
+          <button class="panelToggleBtn" id="infoToggleBtn" type="button" aria-expanded="false" aria-controls="infoPanel">מידע נוסף</button>
+          <button class="panelToggleBtn" id="linksToggleBtn" type="button" aria-expanded="false" aria-controls="linksPanel">קישורים נוספים</button>
+          <button class="panelToggleBtn" id="gameToggleBtn" type="button" aria-expanded="false" aria-controls="gamePanel">משחק יירוט</button>
+        </div>
+        
+        <div class="panel" id="infoPanel" hidden tabindex="-1">
+
+          <div id="infoPanelContent">
+            <section id="sitePurpose">
+              <p id="sitePurposeText"></p>
+            </section>
+            <div>האתר מציג עדכון אחרון שנקלט בשרת המקומי, עד כשעה אחורה.</div>
+            <a href="https://www.oref.org.il/heb/alerts-history" target="_blank" 
+              rel="noopener noreferrer">להתרעות האחרונות באתר פיקוד העורף</a>
+            <div>האתר שומר את רשימת "המקומות שלי" מקומית בדפדפן בלבד (localStorage), ללא cookies וללא שליחת מידע.</div>
+            
+            <div class="panelActions">
+              <button id="infoCloseBtn" class="panelCloseBtn" type="button">סגור</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="linksPanel" hidden tabindex="-1">
+
+          <div id="linksPanelContent">
+            <p>עוד אתרים שנוצרו סביב המצב. חלקם פרקטיים וחלקם הומוריסטיים.</p>
+
+              <ul id="externalLinksList">
+                <li>
+                  <a href="https://saferoutemap.space/" target="_blank" rel="noopener noreferrer">
+                    תכנון מסלול ריצה ליד מרחבים מוגנים
+                  </a>
+                </li>
+
+                <li>
+                  <a href="https://canishower.com/" target="_blank" rel="noopener noreferrer">
+                    מתי הכי בטוח להתקלח (ניתוח סטטיסטי, לא כלי רשמי)
+                  </a>
+                </li>
+
+                <li>
+                  <a href="https://stress-meter-pro.base44.app/" target="_blank" rel="noopener noreferrer">
+                    מדד המסכנות (הומור)
+                  </a>
+                </li>
+              </ul>
+          </div>
+
+          <div class="panelActions">
+            <button id="linksCloseBtn" class="panelCloseBtn" type="button">סגור</button>
+          </div>
+
+        </div>
+
+        <div class="panel" id="gamePanel" hidden tabindex="-1">
+
+          <div id="gamePanelContent">
+            <h1> בקרוב 🚀 Coming Soon</h1>
+          </div>
+
+          <div class="panelActions">
+            <button id="gameCloseBtn" class="panelCloseBtn" type="button">סגור</button>
+          </div>
+
+        </div>
+
+        <div id="listToolbar" hidden>
+          <div id="sortControls">
+            <button id="sortToggleBtn" type="button" aria-expanded="false" aria-controls="sortMenu">
+              מיון: א-ת
+            </button>
+
+            <div id="sortMenu" hidden>
+              <button type="button" data-sort-mode="catalog">א-ת</button>
+              <button type="button" data-sort-mode="lastAlert">לפי עדכון אחרון</button>
+
+              <label>
+                <input type="checkbox" id="defaultSortToggle" aria-describedby="defaultSortHelp">
+                השתמש במיון זה כברירת מחדל
+              </label>
+              <div id="defaultSortHelp" class="visually-hidden">ההעדפה נשמרת מקומית בדפדפן בלבד (localStorage).</div>   <!-- TODO: tooltip for help text -->
+            </div>
+          </div>
+
+          <div id="myPlacesPreferenceArea" hidden>
+            <label>
+              <input type="checkbox" id="openInMyPlacesToggle" aria-describedby="openInMyPlacesHelp">
+              פתח את האתר ישר ב"המקומות שלי"
+            </label>
+            <div id="openInMyPlacesHelp"></div>
+          </div>
+        </div>
+
+        <div id="placesListArea">
+          <div id="meta" role="status" aria-live="polite"></div>
+          <ul id="list"></ul>
+        </div>
+
+      </main>
+
+      <div id="refreshBar">
+        <div id="refreshBarInner">
+          <button id="refreshNow" type="button" aria-label="רענן נתונים">רענן עכשיו</button>
+          <span id="refreshStatus" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <footer id="siteFooter">
+        <div id="footerInner">
+          <span class="contact-label">צור קשר: </span>
+          <a href="mailto:dev.projects.moshe@proton.me" class="contact-label"> dev.projects.moshe@proton.me</a>
+        </div>
+      </footer>
+
+    </div>
+
+    <template id="placeRowTemplate">
+      <li class="place-row">
+        <button class="fav" type="button" aria-label="הוסף למקומות שלי" ></button>
+        <span class="place-name"></span>
+        <span class="place-sep"> | </span>
+
+        <span class="place-status-block">
+          <span class="place-status"></span>
+          <span class="place-time"></span>
+        </span>
+      </li>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
