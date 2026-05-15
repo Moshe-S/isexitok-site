@@ -1,6 +1,6 @@
 # IsExitOK
 
-Live website: https://isexitok.com
+Live website: https://oktoexit.com
 
 Frontend for the "Is it OK to leave the shelter?" project.
 
