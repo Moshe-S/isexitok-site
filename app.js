@@ -1031,15 +1031,30 @@ function createPlaceRow(place) {
   const isYesterday = date < startOfToday;
 
   if (serverRecord.lifecycle === "stale") {
-    timeEl.textContent = (isYesterday ? "אתמול בשעה " : "בשעה ") + hh + ":" + mm;
+    const elapsedText = formatStaleElapsedTime(diffSeconds);
+
+    timeEl.textContent =
+      (isYesterday ? "אתמול בשעה " : "בשעה ") +
+      hh +
+      ":" +
+      mm +
+      " (לפני " +
+      elapsedText +
+      ", " +
+      (serverRecord.instructions || "") +
+      ")";
   } else if (serverRecord.lifecycle === "expired") {
-    timeEl.textContent = "";
+    const dd = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    timeEl.textContent =
+      "(" + dd + "/" + month + " ב-" + hh + ":" + mm + ")";
   } else {
     if (minutes === 0) {
       timeEl.textContent = "ב " + hh + ":" + mm + ", לפני פחות מדקה";
     } else {
       const prefix = isYesterday ? "אתמול בשעה " : "בשעה ";
-      timeEl.textContent = prefix + hh + ":" + mm + ", לפני " + minutes + " דקות";
+      timeEl.textContent = prefix + hh + ":" + mm + ", לפני " + minutes + " דק'";
     }
   }
 
@@ -1076,6 +1091,26 @@ function handleFavKeydown(e) {
   });
 
   items[nextIndex].focus();
+}
+
+function formatStaleElapsedTime(diffSeconds) {
+  const totalMinutes = Math.max(0, Math.floor(diffSeconds / 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return minutes + " דק'";
+  }
+
+  if (hours === 1) {
+    return "שעה ו-" + minutes + " דק'";
+  }
+
+  if (hours === 2) {
+    return "שעתיים ו-" + minutes + " דק'";
+  }
+
+  return hours + " ש' ו-" + minutes + " דק'";
 }
 
 function formatInitialStatus(place) {
