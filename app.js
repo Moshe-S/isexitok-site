@@ -391,8 +391,7 @@ async function fetchFullSnapshot() {
   
   try {
 
-    const res = await fetch("https://api.isexitok.com/api/alert", { cache: "no-store", signal: controller.signal });
-
+  const res = await fetch(`${API_BASE}/api/alert`, { cache: "no-store", signal: controller.signal });
     if (!res.ok) {
       throw new Error("HTTP " + res.status);
     }
