@@ -1,3 +1,9 @@
-.DS_Store
-Thumbs.db
+server-v2/node_modules/
+*.log
+logger/
+server-v2/logs for analysis/
+server-v2/logs/
+server-v2/cityState.json
+haim-efshar/config.js
 .vscode/
+config.js

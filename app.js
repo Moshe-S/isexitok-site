@@ -1,9 +1,9 @@
 "use strict";
 
+const API_BASE = window.APP_CONFIG?.API_BASE || "https://api.isexitok.com";
 const HELP_TEXT = "להצגת מצב לפי מיקום, הקלידו שם מקום או אזור";
 const NO_FAV_TEXT = "אין עדיין מקומות שמורים";
-const OPEN_IN_MY_PLACES_EMPTY_HELP =
-  "כדי להפעיל את האפשרות, צריך להוסיף לפחות מקום אחד.";
+const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, צריך להוסיף לפחות מקום אחד.";
 
 const FAV_KEY = "favorites";
 const OPEN_IN_MY_PLACES_KEY = "openInMyPlacesOnLoad";
@@ -172,6 +172,12 @@ let refreshStatusTimeoutId = null;
 let isRequestInFlight = false;
 let lastFetchFailed = false;
 let shouldFetchFullSnapshot = false;
+let communicationMode = "connecting";
+let wasHidden = false;
+let pollingIntervalId = null;
+let statusIntervalId = null;
+let snapshotMarkerIntervalId = null;
+let connectionCheckIntervalId = null;
 let lastManualRefreshAt = 0;
 let manualRefreshPending = false;
 
@@ -271,7 +277,7 @@ function setSyncIndicatorState(state) {
 }
 
 async function init() {
-  if (sitePurposeText) {
+    if (sitePurposeText) {
     sitePurposeText.textContent =
       "";
   }
@@ -282,23 +288,41 @@ async function init() {
   if (defaultSortToggle) {
     defaultSortToggle.checked = localStorage.getItem("sortMode") !== null;
   }
-        attachEvents();
-        updateNavLocation();
-        window.addEventListener("resize", updateNavLocation);
-        updateSearchButtonsVisibility();
-    await fetchFullSnapshot();
-    await fetchServerStatus();
-    setInterval(() => {
-      fetchIncrementalUpdates();
-    }, 10000);
-      setInterval(() => {
-      fetchServerStatus();
-    }, 5000);
-    setInterval(() => {
-      shouldFetchFullSnapshot = true;
-    }, 300000);
+  attachEvents();
+  updateNavLocation();
+  window.addEventListener("resize", updateNavLocation);
+  updateSearchButtonsVisibility();
+  await fetchFullSnapshot();
+  await fetchServerStatus();
+  startPolling();
 
+  if (shouldOpenInMyPlacesOnLoad() && favorites.size > 0) {
+    currentView = "myPlaces";
+    renderCurrentView();
+    return;
+  }
+
+  if (currentView === "home") {
+    renderHome();
+  } else {
+    renderCurrentView();
+  }
+}
+
+function startPolling() {
     setInterval(() => {
+    fetchIncrementalUpdates();
+  }, 10000);
+
+  setInterval(() => {
+    fetchServerStatus();
+  }, 5000);
+
+  setInterval(() => {
+    shouldFetchFullSnapshot = true;
+  }, 300000);
+
+  setInterval(() => {
     const now = Date.now();
     const elapsed = lastSuccessfulRefreshAt ? now - lastSuccessfulRefreshAt : Infinity;
     const sourceHealthState = getServerSourceHealthState();
@@ -322,10 +346,10 @@ async function init() {
       currentConnectionState = "source_warning";
       serverWarning.textContent = "ייתכן עיכוב בקבלת עדכונים ממקור ההתרעות.";
     } else {
-    if (Date.now() - connectionRestoredShownAt > 4000) {
-      serverWarning.textContent = "";
-    }
-    document.body.classList.remove("data-stale");
+      if (Date.now() - connectionRestoredShownAt > 4000) {
+        serverWarning.textContent = "";
+      }
+      document.body.classList.remove("data-stale");
 
       if (lastConnectionState !== "connected") {
         serverWarning.textContent =
@@ -334,8 +358,9 @@ async function init() {
             : "הקשר עם השרת חודש";
         connectionRestoredShownAt = Date.now();
         updateBottomStatus("connection_restored");
-        }
       }
+    }
+
     if (isRequestInFlight) {
       setSyncIndicatorState("is-checking");
     } else if (currentConnectionState === "connection_lost" || currentConnectionState === "source_lost") {
@@ -349,19 +374,8 @@ async function init() {
     }
 
     lastConnectionState = currentConnectionState;
-  }, 1000);    
+  }, 1000);
 
-  if (shouldOpenInMyPlacesOnLoad() && favorites.size > 0) {
-    currentView = "myPlaces";
-    renderCurrentView();
-    return;
-  }
-
-  if (currentView === "home") {
-      renderHome();
-    } else {
-    renderCurrentView();
-    }
 }
 
 async function fetchFullSnapshot() {
@@ -436,7 +450,7 @@ async function fetchIncrementalUpdates() {
     }
     
     const res = await fetch(
-      "https://api.isexitok.com/api/updates?since=" + encodeURIComponent(lastServerTime),
+      `${API_BASE}/api/updates?since=` + encodeURIComponent(lastServerTime),
       { cache: "no-store", signal: controller.signal }
     );
 
@@ -482,7 +496,7 @@ async function fetchIncrementalUpdates() {
 
 async function fetchServerStatus() {
   try {
-    const res = await fetch("https://api.isexitok.com/api/status", { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/status`, { cache: "no-store" });
 
     if (!res.ok) {
       return;
@@ -1033,16 +1047,14 @@ function createPlaceRow(place) {
   if (serverRecord.lifecycle === "stale") {
     const elapsedText = formatStaleElapsedTime(diffSeconds);
 
+    const prefix = isYesterday ? "אתמול בשעה\u00A0" : "בשעה\u00A0";
+
+    statusEl.textContent =
+      formatServerStatus(serverRecord) + " " + prefix + hh + ":" + mm;
+
     timeEl.textContent =
-      (isYesterday ? "אתמול בשעה " : "בשעה ") +
-      hh +
-      ":" +
-      mm +
-      " (לפני " +
-      elapsedText +
-      ", " +
-      (serverRecord.instructions || "") +
-      ")";
+      "(לפני " + elapsedText + ", " + (serverRecord.instructions || "") + ")";
+    
   } else if (serverRecord.lifecycle === "expired") {
     const dd = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
