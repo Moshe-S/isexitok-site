@@ -356,6 +356,10 @@ function startPolling() {
   }, 300000);
 
   connectionCheckIntervalId = setInterval(() => {
+        if (document.visibilityState === "hidden") {
+          return;
+        }
+        
     const now = Date.now();
     const elapsed = lastSuccessfulRefreshAt ? now - lastSuccessfulRefreshAt : Infinity;
     const sourceHealthState = getServerSourceHealthState();
@@ -452,6 +456,7 @@ async function handlePageVisible() {
   wasHidden = false;
 
   communicationMode = "reconnecting";
+  updateBottomStatus("clear");
   await showStatusForAtLeast("מחדש קשר עם השרת...");
   setSyncIndicatorState("is-checking");
 
