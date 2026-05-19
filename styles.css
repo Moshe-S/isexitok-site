@@ -354,7 +354,35 @@ a:focus-visible {
 
 #serverWarning {
   flex-basis: 100%;
+
+  font-weight: 500;
+  line-height: 1.45;
+
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+#serverWarning.is-checking {
+  color: #4f86ff;
+}
+
+#serverWarning.is-success {
+  color: #4caf50;
+  font-weight: 700;
+}
+
+#serverWarning.is-paused {
+  color: #9aa0a6;
+}
+
+#serverWarning.is-warning {
   color: #ffb347;
+}
+
+#serverWarning.is-error {
+  color: #ef5350;
+  font-weight: 600;
 }
 
 #meta:empty,
@@ -556,6 +584,11 @@ a:focus-visible {
   background: #4caf50;
 }
 
+#syncIndicator.is-paused {
+  background: #9aa0a6;
+  box-shadow: 0 0 0.24rem rgba(154, 160, 166, 0.22);
+}
+
 #syncIndicator.is-warning {
   background: #ff9800;
   box-shadow: 0 0 0.28rem rgba(255, 152, 0, 0.22);
@@ -576,10 +609,6 @@ a:focus-visible {
 
 button:hover {
   background: #242424;
-}
-
-.place-time {
-  white-space: nowrap;
 }
 
 #refreshStatus {

@@ -280,6 +280,29 @@ function setSyncIndicatorState(state) {
   }
 }
 
+function setServerWarning(text, state) {
+  if (!serverWarning) return;
+
+  serverWarning.textContent = text;
+  setServerWarningState(state);
+}
+
+function setServerWarningState(state) {
+  if (!serverWarning) return;
+
+  serverWarning.classList.remove(
+    "is-checking",
+    "is-success",
+    "is-warning",
+    "is-error",
+    "is-paused"
+  );
+
+  if (state) {
+    serverWarning.classList.add(state);
+  }
+}
+
 async function init() {
     if (sitePurposeText) {
     sitePurposeText.textContent =
@@ -369,30 +392,44 @@ function startPolling() {
     if (initialConnectionFailed || elapsed >= 5 * 60 * 1000) {
       currentConnectionState = "connection_lost";
       document.body.classList.add("data-stale");
-      serverWarning.textContent = "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.";
+      setServerWarning(
+        "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.",
+        "is-error"
+      );
       updateBottomStatus("error");
     } else if (elapsed >= 90000) {
       currentConnectionState = "connection_warning";
-      serverWarning.textContent = "ייתכן שיש בעיית תקשורת עם השרת, נמשיך לנסות.";
+      setServerWarning(
+        "ייתכן שיש בעיית תקשורת עם השרת, נמשיך לנסות.",
+        "is-warning"
+      );
       updateBottomStatus("delay");
     } else if (sourceHealthState === "source_lost") {
       currentConnectionState = "source_lost";
       document.body.classList.add("data-stale");
-      serverWarning.textContent = "השרת זמין, אך יש בעיה בקבלת עדכונים ממקור ההתרעות. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.";
+      setServerWarning(
+        "השרת זמין, אך יש בעיה בקבלת עדכונים ממקור ההתרעות. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.",
+        "is-error"
+      );
     } else if (sourceHealthState === "source_warning") {
       currentConnectionState = "source_warning";
-      serverWarning.textContent = "ייתכן עיכוב בקבלת עדכונים ממקור ההתרעות, נמשיך לנסות.";
+      setServerWarning(
+        "ייתכן עיכוב בקבלת עדכונים ממקור ההתרעות, נמשיך לנסות.",
+        "is-warning"
+      );
     } else {
       if (Date.now() - connectionRestoredShownAt > 4000) {
-        serverWarning.textContent = "";
+        setServerWarning("", "");
       }
       document.body.classList.remove("data-stale");
 
       if (lastConnectionState !== "connected") {
-        serverWarning.textContent =
+        setServerWarning(
           lastConnectionState === "source_lost" || lastConnectionState === "source_warning"
             ? "הקשר עם מקור ההתרעות חודש"
-            : "הקשר עם השרת חודש";
+            : "הקשר עם השרת חודש",
+          "is-success"
+        );
         connectionRestoredShownAt = Date.now();
         updateBottomStatus("connection_restored");
       }
@@ -431,16 +468,18 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function showStatusForAtLeast(text) {
-  serverWarning.textContent = text;
+async function showStatusForAtLeast(text, state = "") {
+  setServerWarning(text, state);
   await delay(MIN_STATUS_VISIBLE_MS);
 }
 
 function enterPausedState() {
   communicationMode = "paused";
 
-  serverWarning.textContent =
-    'התקשורת מושהית כשהאתר ברקע. חזרו לאתר או לחצו על "רענן עכשיו" כדי לחדש את התקשורת.';
+  setServerWarning(
+    'התקשורת מושהית כשהאתר ברקע. חזרו לאתר או לחצו על "רענן עכשיו" כדי לחדש את התקשורת.',
+    "is-paused"
+  );
 
   setSyncIndicatorState("is-paused");
 
@@ -457,7 +496,7 @@ async function handlePageVisible() {
 
   communicationMode = "reconnecting";
   updateBottomStatus("clear");
-  await showStatusForAtLeast("מחדש קשר עם השרת...");
+  await showStatusForAtLeast("מחדש קשר עם השרת...", "is-checking");
   setSyncIndicatorState("is-checking");
 
   const connectionDeadline = Date.now() + 40000;
@@ -471,7 +510,7 @@ async function handlePageVisible() {
     const didConnect = await fetchFullSnapshot();
 
     if (didConnect) {
-      await showStatusForAtLeast("הקשר עם השרת חודש");
+      await showStatusForAtLeast("הקשר עם השרת חודש", "is-success");
       connectionRestoredShownAt = Date.now();
       communicationMode = "connected";
 
@@ -479,13 +518,15 @@ async function handlePageVisible() {
       return;
     }
 
-    serverWarning.textContent =
-      "לא הצלחנו לחדש קשר עם השרת. נמשיך לנסות.";
+    setServerWarning(
+      "לא הצלחנו לחדש קשר עם השרת. נמשיך לנסות.",
+      "is-warning"
+    );
 
     await delay(3000);
 
     if (Date.now() < connectionDeadline) {
-      await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...");
+      await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...", "is-checking");
       setSyncIndicatorState("is-checking");
     }
   }
@@ -496,7 +537,7 @@ async function handlePageVisible() {
 
 async function runInitialConnection() {
   communicationMode = "connecting";
-  await showStatusForAtLeast("יוצר קשר עם השרת...");
+  await showStatusForAtLeast("יוצר קשר עם השרת...", "is-checking");
   setSyncIndicatorState("is-checking");
 
   const connectionDeadline = Date.now() + 40000;
@@ -505,19 +546,21 @@ while (Date.now() < connectionDeadline) {
   const didConnect = await fetchFullSnapshot();
 
   if (didConnect) {
-    await showStatusForAtLeast("הקשר עם השרת נוצר");
+    await showStatusForAtLeast("הקשר עם השרת נוצר", "is-success");
     connectionRestoredShownAt = Date.now();
     communicationMode = "connected";
     return true;
   }
 
-  serverWarning.textContent =
-    "לא הצלחנו ליצור קשר עם השרת. נמשיך לנסות.";
+  setServerWarning(
+    "לא הצלחנו ליצור קשר עם השרת. נמשיך לנסות.",
+    "is-warning"
+  );
 
   await delay(3000);
 
   if (Date.now() < connectionDeadline) {
-    await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...");
+    await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...", "is-checking");
     setSyncIndicatorState("is-checking");
   }
 
