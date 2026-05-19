@@ -7,6 +7,7 @@ const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, 
 
 const FAV_KEY = "favorites";
 const OPEN_IN_MY_PLACES_KEY = "openInMyPlacesOnLoad";
+const MIN_STATUS_VISIBLE_MS = 1000;
 
 const qInput = document.getElementById("q");
 const clearBtn = document.getElementById("clear");
@@ -178,6 +179,8 @@ let pollingIntervalId = null;
 let statusIntervalId = null;
 let snapshotMarkerIntervalId = null;
 let connectionCheckIntervalId = null;
+let hiddenPauseTimeoutId = null;
+let initialConnectionFailed = false;
 let lastManualRefreshAt = 0;
 let manualRefreshPending = false;
 
@@ -268,7 +271,8 @@ function setSyncIndicatorState(state) {
     "is-checking",
     "is-success",
     "is-warning",
-    "is-error"
+    "is-error",
+    "is-paused"
   );
 
   if (state) {
@@ -291,9 +295,28 @@ async function init() {
   attachEvents();
   updateNavLocation();
   window.addEventListener("resize", updateNavLocation);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      hiddenPauseTimeoutId = setTimeout(() => {
+        wasHidden = true;
+        enterPausedState();
+      }, 60000);
+    } else {
+      clearTimeout(hiddenPauseTimeoutId);
+      hiddenPauseTimeoutId = null;
+      handlePageVisible();
+    }
+  });
+
   updateSearchButtonsVisibility();
-  await fetchFullSnapshot();
-  await fetchServerStatus();
+
+  const didConnect = await runInitialConnection();
+
+  if (didConnect) {
+    await fetchServerStatus();
+  }
+
   startPolling();
 
   if (shouldOpenInMyPlacesOnLoad() && favorites.size > 0) {
@@ -310,41 +333,51 @@ async function init() {
 }
 
 function startPolling() {
-    setInterval(() => {
+
+    if (
+      pollingIntervalId ||
+      statusIntervalId ||
+      snapshotMarkerIntervalId ||
+      connectionCheckIntervalId
+    ) {
+      return;
+    }
+    
+    pollingIntervalId = setInterval(() => {
     fetchIncrementalUpdates();
   }, 10000);
 
-  setInterval(() => {
+  statusIntervalId = setInterval(() => {
     fetchServerStatus();
   }, 5000);
 
-  setInterval(() => {
+  snapshotMarkerIntervalId = setInterval(() => {
     shouldFetchFullSnapshot = true;
   }, 300000);
 
-  setInterval(() => {
+  connectionCheckIntervalId = setInterval(() => {
     const now = Date.now();
     const elapsed = lastSuccessfulRefreshAt ? now - lastSuccessfulRefreshAt : Infinity;
     const sourceHealthState = getServerSourceHealthState();
     let currentConnectionState = "connected";
     document.body.classList.remove("data-stale");
 
-    if (elapsed >= 5 * 60 * 1000) {
+    if (initialConnectionFailed || elapsed >= 5 * 60 * 1000) {
       currentConnectionState = "connection_lost";
       document.body.classList.add("data-stale");
-      serverWarning.textContent = "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני.";
+      serverWarning.textContent = "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.";
       updateBottomStatus("error");
     } else if (elapsed >= 90000) {
       currentConnectionState = "connection_warning";
-      serverWarning.textContent = "ייתכן שיש בעיית תקשורת עם השרת.";
+      serverWarning.textContent = "ייתכן שיש בעיית תקשורת עם השרת, נמשיך לנסות.";
       updateBottomStatus("delay");
     } else if (sourceHealthState === "source_lost") {
       currentConnectionState = "source_lost";
       document.body.classList.add("data-stale");
-      serverWarning.textContent = "השרת זמין, אך יש בעיה בקבלת עדכונים ממקור ההתרעות. ייתכן שהמידע המוצג אינו עדכני.";
+      serverWarning.textContent = "השרת זמין, אך יש בעיה בקבלת עדכונים ממקור ההתרעות. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.";
     } else if (sourceHealthState === "source_warning") {
       currentConnectionState = "source_warning";
-      serverWarning.textContent = "ייתכן עיכוב בקבלת עדכונים ממקור ההתרעות.";
+      serverWarning.textContent = "ייתכן עיכוב בקבלת עדכונים ממקור ההתרעות, נמשיך לנסות.";
     } else {
       if (Date.now() - connectionRestoredShownAt > 4000) {
         serverWarning.textContent = "";
@@ -378,6 +411,118 @@ function startPolling() {
 
 }
 
+function stopPolling() {
+  clearInterval(pollingIntervalId);
+  clearInterval(statusIntervalId);
+  clearInterval(snapshotMarkerIntervalId);
+  clearInterval(connectionCheckIntervalId);
+
+  pollingIntervalId = null;
+  statusIntervalId = null;
+  snapshotMarkerIntervalId = null;
+  connectionCheckIntervalId = null;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function showStatusForAtLeast(text) {
+  serverWarning.textContent = text;
+  await delay(MIN_STATUS_VISIBLE_MS);
+}
+
+function enterPausedState() {
+  communicationMode = "paused";
+
+  serverWarning.textContent =
+    'התקשורת מושהית כשהאתר ברקע. חזרו לאתר או לחצו על "רענן עכשיו" כדי לחדש את התקשורת.';
+
+  setSyncIndicatorState("is-paused");
+
+  stopPolling();
+}
+
+async function handlePageVisible() {
+  if (!wasHidden) {
+    startPolling();
+    return;
+  }
+
+  wasHidden = false;
+
+  communicationMode = "reconnecting";
+  await showStatusForAtLeast("מחדש קשר עם השרת...");
+  setSyncIndicatorState("is-checking");
+
+  const connectionDeadline = Date.now() + 40000;
+
+  while (Date.now() < connectionDeadline) {
+    if (isRequestInFlight) {
+      await delay(1000);
+      continue;
+    }
+
+    const didConnect = await fetchFullSnapshot();
+
+    if (didConnect) {
+      await showStatusForAtLeast("הקשר עם השרת חודש");
+      connectionRestoredShownAt = Date.now();
+      communicationMode = "connected";
+
+      startPolling();
+      return;
+    }
+
+    serverWarning.textContent =
+      "לא הצלחנו לחדש קשר עם השרת. נמשיך לנסות.";
+
+    await delay(3000);
+
+    if (Date.now() < connectionDeadline) {
+      await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...");
+      setSyncIndicatorState("is-checking");
+    }
+  }
+
+  communicationMode = "connection_lost";
+  startPolling();
+}
+
+async function runInitialConnection() {
+  communicationMode = "connecting";
+  await showStatusForAtLeast("יוצר קשר עם השרת...");
+  setSyncIndicatorState("is-checking");
+
+  const connectionDeadline = Date.now() + 40000;
+
+while (Date.now() < connectionDeadline) {
+  const didConnect = await fetchFullSnapshot();
+
+  if (didConnect) {
+    await showStatusForAtLeast("הקשר עם השרת נוצר");
+    connectionRestoredShownAt = Date.now();
+    communicationMode = "connected";
+    return true;
+  }
+
+  serverWarning.textContent =
+    "לא הצלחנו ליצור קשר עם השרת. נמשיך לנסות.";
+
+  await delay(3000);
+
+  if (Date.now() < connectionDeadline) {
+    await showStatusForAtLeast("מנסה שוב ליצור קשר עם השרת...");
+    setSyncIndicatorState("is-checking");
+  }
+
+}
+
+  communicationMode = "connection_lost";
+  initialConnectionFailed = true;
+  return false;
+}
+
 async function fetchFullSnapshot() {
   if (isRequestInFlight) {
     return false;
@@ -407,6 +552,7 @@ async function fetchFullSnapshot() {
     lastServerTime = data.serverTime;
     lastSuccessfulRefreshAt = Date.now();
     lastFetchFailed = false;
+    initialConnectionFailed = false;
     isRequestInFlight = false;
     if (manualRefreshPending) {
       manualRefreshPending = false;
@@ -472,6 +618,7 @@ async function fetchIncrementalUpdates() {
     lastServerTime = data.serverTime;
     lastSuccessfulRefreshAt = Date.now();
     lastFetchFailed = false;
+    initialConnectionFailed = false;
     isRequestInFlight = false;
     if (manualRefreshPending) {
       manualRefreshPending = false;
