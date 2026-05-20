@@ -928,6 +928,13 @@ button:hover {
   white-space: nowrap;
 }
 
+/* Allow long status detail text to wrap on narrow mobile screens without breaking the layout. */
+@media (max-width: 768px) {
+  .place-time {
+    white-space: normal;
+  }
+}
+
 .fav {
   display: inline-flex;
   align-items: center;
