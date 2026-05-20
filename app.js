@@ -38,6 +38,10 @@ const drawerOverlay = document.getElementById("drawerOverlay");
 const closeDrawerBtn = document.getElementById("closeDrawerBtn");
 const navControls = document.getElementById("navControls");
 const currentScreenTitle = document.getElementById("currentScreenTitle");
+const utilityPanelsNav = document.getElementById("utilityPanelsNav");
+const mainContent = document.getElementById("mainContent");
+const drawerPrimarySection = document.getElementById("drawerPrimarySection");
+const drawerSecondarySection = document.getElementById("drawerSecondarySection");
 
 const rowTemplate = document.getElementById("placeRowTemplate");
 const sitePurposeText = document.getElementById("sitePurposeText");
@@ -134,11 +138,23 @@ function updateNavLocation() {
   const syncIndicator = document.getElementById("syncIndicator");
   const mobileNavArea = document.getElementById("mobileNavArea");
 
-  if (!drawerContent || !navControls || !controls) return;
+  if (
+    !drawerContent ||
+    !navControls ||
+    !controls ||
+    !drawerPrimarySection ||
+    !drawerSecondarySection ||
+    !utilityPanelsNav ||
+    !mainContent
+  ) return;
 
   if (window.innerWidth <= 768) {
-    if (!drawerContent.contains(navControls)) {
-      drawerContent.appendChild(navControls);
+    if (!drawerPrimarySection.contains(navControls)) {
+      drawerPrimarySection.appendChild(navControls);
+    }
+
+    if (!drawerSecondarySection.contains(utilityPanelsNav)) {
+      drawerSecondarySection.appendChild(utilityPanelsNav);
     }
 
     if (syncIndicator && mobileNavArea && searchToggleBtn && !mobileNavArea.contains(syncIndicator)) {
@@ -148,6 +164,10 @@ function updateNavLocation() {
   } else {
     if (!controls.contains(navControls)) {
       controls.appendChild(navControls);
+    }
+
+    if (!mainContent.contains(utilityPanelsNav)) {
+      mainContent.insertBefore(utilityPanelsNav, mainContent.firstElementChild);
     }
 
     if (syncIndicator && searchControls && !searchControls.contains(syncIndicator)) {
@@ -881,6 +901,7 @@ function handleClear() {
 
 function handleShowMyPlaces() {
   closeDrawer();
+  closeAllPanels();
   qInput.value = "";
   currentView = "myPlaces";
   renderCurrentView();
@@ -888,6 +909,7 @@ function handleShowMyPlaces() {
 
 function handleShowAll() {
   closeDrawer();
+  closeAllPanels();
   qInput.value = "";
   currentView = "all";
   renderCurrentView();
@@ -895,6 +917,7 @@ function handleShowAll() {
 
 function handleGoHome() {
   closeDrawer();
+  closeAllPanels();
   qInput.value = "";
   currentView = "home";
   renderCurrentView();
@@ -1002,6 +1025,10 @@ panelToggleBtns.forEach((btn) => {
       b.setAttribute("aria-expanded", "false");
     });
     closeAllPanels();
+
+    if (sideDrawer && sideDrawer.classList.contains("is-open")) {
+      closeDrawer();
+    }
 
     if (!isOpen) {
       panel.hidden = false;

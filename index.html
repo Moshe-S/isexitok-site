@@ -15,7 +15,14 @@
         <button id="closeDrawerBtn" type="button" aria-label="סגור תפריט">✕</button>
       </div>
       <div class="drawer-content">
-        </div>
+        <section class="drawer-section" id="drawerPrimarySection" aria-labelledby="drawerPrimaryTitle">
+          <h2 class="drawer-section-title" id="drawerPrimaryTitle">ניווט</h2>
+        </section>
+
+        <section class="drawer-section" id="drawerSecondarySection" aria-labelledby="drawerSecondaryTitle">
+          <h2 class="drawer-section-title" id="drawerSecondaryTitle">מידע וכלים</h2>
+        </section>
+      </div>
     </div>
 
     <div id="drawerOverlay" class="drawer-overlay"></div>
@@ -97,6 +104,7 @@
         <div class="panel" id="infoPanel" hidden tabindex="-1">
 
           <div id="infoPanelContent">
+            <h2 class="panelTitle">מידע נוסף</h2>
             <section id="sitePurpose">
               <p id="sitePurposeText"></p>
             </section>
@@ -114,6 +122,7 @@
         <div class="panel" id="linksPanel" hidden tabindex="-1">
 
           <div id="linksPanelContent">
+            <h2 class="panelTitle">קישורים נוספים</h2>
             <p>עוד אתרים שנוצרו סביב המצב. חלקם פרקטיים וחלקם הומוריסטיים.</p>
 
               <ul id="externalLinksList">
@@ -146,6 +155,7 @@
         <div class="panel" id="gamePanel" hidden tabindex="-1">
 
           <div id="gamePanelContent">
+            <h2 class="panelTitle">משחק יירוט</h2>
             <h1> בקרוב 🚀 Coming Soon</h1>
           </div>
 
