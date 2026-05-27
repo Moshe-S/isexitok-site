@@ -944,6 +944,8 @@ function handleShowMyPlaces() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  setMobileNavState("default");
+  updateSearchButtonsVisibility();
   currentView = "myPlaces";
   renderCurrentView();
 }
@@ -953,6 +955,8 @@ function handleShowAll() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  setMobileNavState("default");
+  updateSearchButtonsVisibility();
   currentView = "all";
   renderCurrentView();
 }
@@ -962,6 +966,8 @@ function handleGoHome() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  setMobileNavState("default");
+  updateSearchButtonsVisibility();
   currentView = "home";
   renderCurrentView();
 }
