@@ -1112,6 +1112,9 @@ button:hover {
 
 #mobileSearchArea {
   display: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 #mobileSearchBox {
@@ -1142,6 +1145,10 @@ button:hover {
 
 #mobileQ::placeholder {
   color: var(--text-secondary);
+}
+
+#app.search-active-compact #mobileQ {
+  text-align: center;
 }
 
 #mobileClear {
@@ -1209,14 +1216,33 @@ button:hover {
     display: none;
   }
 
+  #app.search-active-compact #currentScreenTitle {
+    display: none;
+  }
+
   #app.search-open #mobileSearchArea {
     display: flex;
     flex: 1;
     min-width: 0;
   }
+
+  #app.search-active-compact #mobileSearchArea {
+    opacity: 0.88;
+    justify-content: center;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    max-width: 65%;
+    margin: 0 auto;
+  }
+
+  #app.search-active-compact #searchToggleBtn {
+    display: none;
+  }
 }
 
 #searchToggleBtn {
+  gap: 0.35rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1238,6 +1264,41 @@ button:hover {
 #searchToggleBtn:hover {
   background: rgba(255, 255, 255, 0.12);
 }
+
+.search-toggle-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-inline: 0.15rem;
+}
+
+.search-toggle-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: block;
+  transform: translateY(1px);
+}
+
+.search-toggle-close {
+  display: none;
+}
+
+#app.search-open .search-toggle-compact {
+  display: none;
+}
+
+#app.search-open .search-toggle-close {
+  display: inline-flex;
+}
+
+#app.search-active-compact .search-toggle-compact {
+  display: none;
+}
+
+#app.search-active-compact .search-toggle-close {
+  display: none;
+}
+
 #disclaimer {
   text-align: center;
   font-weight: 500;

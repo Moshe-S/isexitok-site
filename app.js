@@ -53,7 +53,7 @@ const panelCloseBtns = document.querySelectorAll(".panelCloseBtn");
 function setMobileNavState(state) {
   if (!app) return;
 
-  app.classList.remove("menu-open", "search-open");
+  app.classList.remove("menu-open", "search-open", "search-active-compact");
 
   if (state === "menu") {
     app.classList.add("menu-open");
@@ -69,9 +69,18 @@ function setMobileNavState(state) {
       mobileQ.focus();
     }
   }
-  if (searchToggleBtn) {
-    searchToggleBtn.textContent = state === "search" ? "✕" : "🔍";
+
+  if (state === "search-active-compact") {
+    app.classList.add("search-active-compact");
   }
+
+  if (searchToggleBtn) {
+    searchToggleBtn.setAttribute(
+      "aria-label",
+      state === "search" ? "סגור חיפוש" : "פתח חיפוש"
+    );
+  }
+
   if (searchToggleBtn) {
     searchToggleBtn.setAttribute("aria-expanded", state === "search" ? "true" : "false");
   }
@@ -758,6 +767,24 @@ function attachEvents() {
       handleSearchInput();
     });
   }
+
+  if (mobileQ) {
+    mobileQ.addEventListener("focus", () => {
+      if (app && app.classList.contains("search-active-compact")) {
+        setMobileNavState("search");
+        updateSearchButtonsVisibility();
+      }
+    });
+  }
+
+  if (mobileQ) {
+    mobileQ.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        collapseMobileSearchAfterEditing();
+      }
+    });
+  }
+  
   clearBtn.addEventListener("click", handleClear);
   if (mobileClear) {
     mobileClear.addEventListener("click", handleClear);
@@ -880,6 +907,15 @@ function updateSearchButtonsVisibility() {
   }
 }
 
+function collapseMobileSearchAfterEditing() {
+  const hasQuery =
+    (qInput && qInput.value.trim() !== "") ||
+    (mobileQ && mobileQ.value.trim() !== "");
+
+  setMobileNavState(hasQuery ? "search-active-compact" : "default");
+  updateSearchButtonsVisibility();
+}
+
 function handleClear() {
   const hadQuery = qInput.value.trim() !== "";
 
@@ -891,6 +927,10 @@ function handleClear() {
   }
 
   renderCurrentView();
+  if (app && app.classList.contains("search-active-compact")) {
+    setMobileNavState("default");
+  }
+
   if (mobileQ && document.activeElement === mobileQ) {
     mobileQ.focus();
   } else if (qInput) {
@@ -903,6 +943,7 @@ function handleShowMyPlaces() {
   closeDrawer();
   closeAllPanels();
   qInput.value = "";
+  if (mobileQ) mobileQ.value = "";
   currentView = "myPlaces";
   renderCurrentView();
 }
@@ -911,6 +952,7 @@ function handleShowAll() {
   closeDrawer();
   closeAllPanels();
   qInput.value = "";
+  if (mobileQ) mobileQ.value = "";
   currentView = "all";
   renderCurrentView();
 }
@@ -919,6 +961,7 @@ function handleGoHome() {
   closeDrawer();
   closeAllPanels();
   qInput.value = "";
+  if (mobileQ) mobileQ.value = "";
   currentView = "home";
   renderCurrentView();
 }
@@ -939,7 +982,13 @@ function handleSearchToggle() {
   if (!app) return;
 
   const isOpen = app.classList.contains("search-open");
-  setMobileNavState(isOpen ? "default" : "search");
+  if (isOpen) {
+    collapseMobileSearchAfterEditing();
+  } else {
+    setMobileNavState("search");
+    updateSearchButtonsVisibility();
+  }
+
   updateSearchButtonsVisibility();
 }
 
