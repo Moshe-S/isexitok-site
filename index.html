@@ -100,6 +100,15 @@
       <main id="mainContent">
 
         <div id="utilityPanelsNav">
+          <button
+            class="panelToggleBtn"
+            id="aboutSiteBtn"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="onboardingModal"
+          >
+            על האתר
+          </button>
           <button class="panelToggleBtn" id="infoToggleBtn" type="button" aria-expanded="false" aria-controls="infoPanel">מידע נוסף</button>
           <button class="panelToggleBtn" id="linksToggleBtn" type="button" aria-expanded="false" aria-controls="linksPanel">קישורים נוספים</button>
           <button class="panelToggleBtn" id="gameToggleBtn" type="button" aria-expanded="false" aria-controls="gamePanel">משחק יירוט</button>
@@ -217,6 +226,176 @@
         </div>
       </footer>
 
+    </div>
+
+    <div id="onboardingOverlay" hidden></div>
+
+    <div
+      id="onboardingModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboardingTitle"
+      aria-describedby="onboardingDescription"
+      hidden
+    >
+
+      <div id="onboardingHeader">
+        <h2 id="onboardingTitle">מידע על האתר</h2>
+
+        <button id="closeOnboardingBtn" type="button" aria-label="סגור חלון מידע">✕</button>
+      </div>
+
+      <div id="onboardingContent">
+
+        
+        <details class="onboardingDetails onboardingDetailsPreview">
+          <summary>
+            <div class="onboardingSummaryText">
+              <span class="onboardingSummaryTitle">מטרת האתר</span>
+
+              <span class="onboardingPreview">
+                האתר נועד לאפשר בדיקה יזומה של התרעות והודעות סיום עבור מקומות שונים,
+                במקום להמתין בצורה פאסיבית להתרעה או להודעת סיום...
+              </span>
+            </div>
+
+            <img
+              class="onboardingSummaryIcon"
+              src="./assets/keyboardArrowDown.svg"
+              alt=""
+              aria-hidden="true"
+            >
+          </summary>
+
+          <div class="onboardingDetailsFull">
+            <p>
+              האתר נועד לאפשר בדיקה יזומה של התרעות והודעות סיום עבור מקומות שונים,
+              במקום להמתין בצורה פאסיבית להתרעה או להודעת סיום.
+            </p>
+
+            <p>
+              כך ניתן לבדוק בצורה פשוטה, מהירה וברורה האם יש התרעה,
+              או האם כבר פורסמה הודעת סיום עבור המקום שנבדק.
+            </p>
+
+            <p>
+              ניתן לחפש יישובים, לשמור מקומות מועדפים,
+              למיין את המידע לפי אפשרויות שונות ולבצע רענון ידני בכל רגע.
+            </p>
+
+            <p>
+              האתר אינו שירות התרעות,
+              ואינו מחליף את פיקוד העורף או אפליקציות התרעה רשמיות.
+            </p>
+          </div>
+        </details>
+
+
+        <details class="onboardingDetails">
+          <summary>
+            <span class="onboardingSummaryTitle">ניווט ושימוש בסיסי</span>
+
+            <img
+              class="onboardingSummaryIcon"
+              src="./assets/keyboardArrowDown.svg"
+              alt=""
+              aria-hidden="true"
+            >
+          </summary>
+
+          <div class="onboardingDetailsFull">
+            <p>
+              ניתן לעבור לרשימת היישובים באמצעות כפתור "הצג הכל",
+              או לחפש יישוב ישירות באמצעות שדה החיפוש.
+            </p>
+
+            <p>
+              לחיצה על סמל הכוכב לצד יישוב תוסיף אותו לרשימת "המקומות שלי".
+              לחיצה נוספת תסיר את היישוב מהרשימה.
+            </p>
+
+            <p>
+              לחיצה על כפתור "המקומות שלי" תציג את רשימת המקומות השמורים.
+            </p>
+
+            <p>
+              כאשר יש מקומות שמורים, ניתן לבחור שהאתר ייפתח ישירות ברשימה זו.
+            </p>
+
+            <p>
+              כפתור הרענון מאפשר בדיקה ידנית בכל רגע.
+            </p>
+
+            <p>
+              ניתן למיין את הרשימה לפי סדר א-ת או לפי עדכון אחרון.
+            </p>
+          </div>
+        </details>
+
+        <details class="onboardingDetails">
+          <summary>
+            <span class="onboardingSummaryTitle">המידע באתר</span>
+
+            <img
+              class="onboardingSummaryIcon"
+              src="./assets/keyboardArrowDown.svg"
+              alt=""
+              aria-hidden="true"
+            >
+          </summary>
+
+          <div class="onboardingDetailsFull">
+
+            <h4>איך המידע מתעדכן</h4>
+            <p>
+              האתר בודק עדכונים מול השרת באופן אוטומטי גם ללא פעולה מצד המשתמש.
+            </p>
+
+            <h4>מהיכן מגיע המידע</h4>
+            <p>
+              המידע באתר מבוסס על מקורות אזרחיים וממשקים ציבוריים ואינו מופעל על ידי גוף רשמי.
+            </p>
+
+            <p>
+              כאשר קיימת תקלה בתקשורת עם השרת, יוצגו הודעות מתאימות והמערכת תמשיך לנסות להתחבר.
+            </p>
+
+          </div>
+        </details>
+
+        <details class="onboardingDetails">
+          <summary>
+            <span class="onboardingSummaryTitle">פתיחה מחדש של חלון המידע</span>
+
+            <img
+              class="onboardingSummaryIcon"
+              src="./assets/keyboardArrowDown.svg"
+              alt=""
+              aria-hidden="true"
+            >
+          </summary>
+
+          <div class="onboardingDetailsFull">
+            <p>
+              ניתן לפתוח מחדש את חלון המידע בכל רגע באמצעות כפתור "על האתר".
+            </p>
+
+            <p>
+              בדסקטופ הכפתור נמצא באזור העליון של הכפתורים.
+            </p>
+
+            <p>
+              במובייל הכפתור נמצא בתוך תפריט הניווט.
+            </p>
+          </div>
+        </details>
+
+        <div id="onboardingActions">
+          <button id="onboardingConfirmBtn" type="button">
+            הבנתי, אפשר להתחיל
+          </button>
+        </div>
+      </div>
     </div>
 
     <template id="placeRowTemplate">

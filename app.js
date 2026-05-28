@@ -7,6 +7,7 @@ const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, 
 
 const FAV_KEY = "favorites";
 const OPEN_IN_MY_PLACES_KEY = "openInMyPlacesOnLoad";
+const ONBOARDING_SEEN_KEY = "onboardingSeen";
 const MIN_STATUS_VISIBLE_MS = 1000;
 
 const qInput = document.getElementById("q");
@@ -42,6 +43,16 @@ const utilityPanelsNav = document.getElementById("utilityPanelsNav");
 const mainContent = document.getElementById("mainContent");
 const drawerPrimarySection = document.getElementById("drawerPrimarySection");
 const drawerSecondarySection = document.getElementById("drawerSecondarySection");
+
+const aboutSiteBtn = document.getElementById("aboutSiteBtn");
+
+const onboardingOverlay = document.getElementById("onboardingOverlay");
+const onboardingModal = document.getElementById("onboardingModal");
+const onboardingContent = document.getElementById("onboardingContent");
+
+const closeOnboardingBtn = document.getElementById("closeOnboardingBtn");
+const onboardingConfirmBtn = document.getElementById("onboardingConfirmBtn");
+let onboardingLastTrigger = null;
 
 const rowTemplate = document.getElementById("placeRowTemplate");
 const sitePurposeText = document.getElementById("sitePurposeText");
@@ -116,6 +127,28 @@ function closeDrawer() {
   document.removeEventListener("keydown", trapDrawerFocus);
   if (menuToggleBtn) {
     menuToggleBtn.focus();
+  }
+}
+
+function trapOnboardingFocus(e) {
+  if (!onboardingModal || onboardingModal.hidden) return;
+  if (e.key !== "Tab") return;
+
+  const focusableElements = onboardingModal.querySelectorAll(
+    'button, summary, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+
+  if (focusableElements.length === 0) return;
+
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+
+  if (e.shiftKey && document.activeElement === firstElement) {
+    e.preventDefault();
+    lastElement.focus();
+  } else if (!e.shiftKey && document.activeElement === lastElement) {
+    e.preventDefault();
+    firstElement.focus();
   }
 }
 
@@ -381,6 +414,10 @@ async function init() {
     renderHome();
   } else {
     renderCurrentView();
+  }
+
+  if (localStorage.getItem(ONBOARDING_SEEN_KEY) !== "true") {
+    openOnboardingModal("initial");
   }
 }
 
@@ -866,6 +903,24 @@ function attachEvents() {
         sortToggleBtn.setAttribute("aria-expanded", "false");
       }
     });
+  
+  if (aboutSiteBtn) {
+    aboutSiteBtn.addEventListener("click", () => {
+      openOnboardingModal("manual");
+    });
+  }
+
+  if (closeOnboardingBtn) {
+    closeOnboardingBtn.addEventListener("click", closeOnboardingModal);
+  }
+
+  if (onboardingConfirmBtn) {
+    onboardingConfirmBtn.addEventListener("click", closeOnboardingModal);
+  }
+
+  if (onboardingOverlay) {
+    onboardingOverlay.addEventListener("click", closeOnboardingModal);
+  }
 }
 
 async function loadPlacesCatalog() {
@@ -1034,6 +1089,55 @@ async function handleRefresh() {
 }
 
 
+function openOnboardingModal(mode = "manual") {
+  if (!onboardingModal || !onboardingOverlay) return;
+  onboardingLastTrigger =
+    mode === "manual"
+      ? aboutSiteBtn
+      : null;
+
+  onboardingModal.hidden = false;
+  onboardingOverlay.hidden = false;
+
+  document.body.style.overflow = "hidden";
+  document.addEventListener("keydown", trapOnboardingFocus);
+
+  if (onboardingConfirmBtn) {
+    onboardingConfirmBtn.textContent =
+      mode === "initial"
+        ? "הבנתי, אפשר להתחיל"
+        : "סגור";
+  }
+
+  if (closeOnboardingBtn) {
+    closeOnboardingBtn.focus();
+  }
+}
+
+function closeOnboardingModal() {
+  if (!onboardingModal || !onboardingOverlay) return;
+
+  onboardingModal.hidden = true;
+  onboardingOverlay.hidden = true;
+
+  document.body.style.overflow = "";
+  document.removeEventListener("keydown", trapOnboardingFocus);
+
+  document.querySelectorAll(".onboardingDetails").forEach((details) => {
+      details.open = false;
+    });
+
+    if (onboardingContent) {
+      onboardingContent.scrollTop = 0;
+    }
+
+  localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+
+  if (onboardingLastTrigger) {
+    onboardingLastTrigger.focus();
+    onboardingLastTrigger = null;
+  }
+}
 
 function closeAllPanels() {
   panels.forEach((panel) => {
@@ -1131,6 +1235,10 @@ function renderCurrentView() {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (onboardingModal && !onboardingModal.hidden) {
+      closeOnboardingModal();
+      return;
+    }
     const activeToggle = document.querySelector(".panelToggleBtn.is-active");
 
     const sortMenu = document.getElementById("sortMenu");
