@@ -329,6 +329,10 @@ function updateBottomStatus(event) {
 function setSyncIndicatorState(state) {
   if (!syncIndicator) return;
 
+  const syncIndicatorUse = syncIndicator.querySelector("use");
+
+  if (!syncIndicatorUse) return;
+
   syncIndicator.classList.remove(
     "is-checking",
     "is-success",
@@ -339,6 +343,14 @@ function setSyncIndicatorState(state) {
 
   if (state) {
     syncIndicator.classList.add(state);
+
+    const iconId = `#icon-sync-${state.replace("is-", "")}`;
+
+    if (document.querySelector(iconId)) {
+      syncIndicatorUse.setAttribute("href", iconId);
+    } else {
+      syncIndicatorUse.setAttribute("href", "#icon-sync-warning");
+    }
   }
 }
 

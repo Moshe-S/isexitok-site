@@ -587,13 +587,8 @@ button:active {
 #syncIndicator {
   display: inline-block;
   flex: 0 0 auto;
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 999px;
 
-  background: #4caf50;
-
-  opacity: 0.68;
+  opacity: 0.78;
 
   transition:
     background-color 0.18s ease,
@@ -601,46 +596,44 @@ button:active {
     opacity 0.18s ease;
 }
 
-#syncIndicator.is-checking {
-  background: #4f86ff;
-  box-shadow: 0 0 0.32rem rgba(79, 134, 255, 0.32);
-  animation: syncPulse 2s ease-in-out infinite;
+.sync-indicator__icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: currentColor;
 }
 
-@keyframes syncPulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.72;
+#syncIndicator.is-checking .sync-indicator__icon {
+  animation: syncSpin 1.4s linear infinite;
+}
+
+@keyframes syncSpin {
+  from {
+    transform: rotate(0deg);
   }
 
-  50% {
-    transform: scale(1.12);
-    opacity: 1;
+  to {
+    transform: rotate(360deg);
   }
+}
 
-  100% {
-    transform: scale(1);
-    opacity: 0.72;
-  }
+#syncIndicator.is-checking {
+  color: #4f86ff;
 }
 
 #syncIndicator.is-success {
-  background: #4caf50;
+  color: #4caf50;
 }
 
 #syncIndicator.is-paused {
-  background: #9aa0a6;
-  box-shadow: 0 0 0.24rem rgba(154, 160, 166, 0.22);
+  color: #9aa0a6;
 }
 
 #syncIndicator.is-warning {
-  background: #ff9800;
-  box-shadow: 0 0 0.28rem rgba(255, 152, 0, 0.22);
+  color: #ff9800;
 }
 
 #syncIndicator.is-error {
-  background: #ef5350;
-  box-shadow: 0 0 0.28rem rgba(239, 83, 80, 0.24);
+  color: #ef5350;
 }
 
 /* list */
