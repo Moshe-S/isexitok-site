@@ -393,6 +393,10 @@ async function init() {
   updateNavLocation();
   window.addEventListener("resize", updateNavLocation);
 
+  if (localStorage.getItem(ONBOARDING_SEEN_KEY) !== "true") {
+    openOnboardingModal("initial");
+  }
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       hiddenPauseTimeoutId = setTimeout(() => {
@@ -428,9 +432,6 @@ async function init() {
     renderCurrentView();
   }
 
-  if (localStorage.getItem(ONBOARDING_SEEN_KEY) !== "true") {
-    openOnboardingModal("initial");
-  }
 }
 
 function startPolling() {
@@ -1134,10 +1135,6 @@ function closeOnboardingModal() {
 
   document.body.style.overflow = "";
   document.removeEventListener("keydown", trapOnboardingFocus);
-
-  document.querySelectorAll(".onboardingDetails").forEach((details) => {
-      details.open = false;
-    });
 
     if (onboardingContent) {
       onboardingContent.scrollTop = 0;
