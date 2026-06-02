@@ -862,6 +862,26 @@ button:hover {
   border-color: #454b55;
 }
 
+.place-row--active-alert:hover {
+  background: #4a3b3d;
+  border-color: #6a474d;
+}
+
+.place-row--ended:hover {
+  background: #3b4a3f;
+  border-color: #4c6254;
+}
+
+.place-row--active-alert {
+  background: #403234;
+  border-color: #5a3e43;
+}
+
+.place-row--ended {
+  background: #303B34;
+  border-color: #405448;
+}
+
 @media (max-width: 520px) {
   .place-row {
     display: grid;

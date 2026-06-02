@@ -1403,9 +1403,17 @@ function createPlaceRow(place) {
   const statusEl = fragment.querySelector(".place-status");
   const timeEl = fragment.querySelector(".place-time");
 
-    const placeName = String(place.name || "");
-    const serverRecord = serverPlaces[placeName] || null;
-    const isFav = favorites.has(placeName);
+  const placeName = String(place.name || "");
+  const serverRecord = serverPlaces[placeName] || null;
+  const visualState = getPlaceVisualState(serverRecord);
+  
+  const rowEl = fragment.querySelector(".place-row");
+
+  if (visualState !== "none") {
+    rowEl.classList.add("place-row--" + visualState);
+  }
+
+  const isFav = favorites.has(placeName);
 
   favBtn.textContent = isFav ? "★" : "☆";
   favBtn.setAttribute(
@@ -1420,52 +1428,53 @@ function createPlaceRow(place) {
 
   nameEl.textContent = placeName;
   if (serverRecord) {
-  statusEl.textContent = formatServerStatus(serverRecord);
-} else {
-  statusEl.textContent = formatInitialStatus(place);
-}
-  if (serverRecord && serverRecord.updatedAt) {
-
-  const diffSeconds = lastServerTime - serverRecord.updatedAt;
-  const minutes = Math.floor(diffSeconds / 60);
-
-  const date = new Date(serverRecord.updatedAt * 1000);
-  const hh = String(date.getHours()).padStart(2, "0");
-  const mm = String(date.getMinutes()).padStart(2, "0");
-  const startOfToday = new Date();
-  startOfToday.setHours(0,0,0,0);
-
-  const isYesterday = date < startOfToday;
-
-  if (serverRecord.lifecycle === "stale") {
-    const elapsedText = formatStaleElapsedTime(diffSeconds);
-
-    const prefix = isYesterday ? "אתמול בשעה\u00A0" : "בשעה\u00A0";
-
-    statusEl.textContent =
-      formatServerStatus(serverRecord) + " " + prefix + hh + ":" + mm;
-
-    timeEl.textContent =
-      "(לפני " + elapsedText + ", " + (serverRecord.instructions || "") + ")";
-    
-  } else if (serverRecord.lifecycle === "expired") {
-    const dd = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-
-    timeEl.textContent =
-      "(" + dd + "/" + month + " ב-" + hh + ":" + mm + ")";
+    statusEl.textContent = formatServerStatus(serverRecord);
   } else {
-    if (minutes === 0) {
-      timeEl.textContent = "ב " + hh + ":" + mm + ", לפני פחות מדקה";
-    } else {
-      const prefix = isYesterday ? "אתמול בשעה " : "בשעה ";
-      timeEl.textContent = prefix + hh + ":" + mm + ", לפני " + minutes + " דק'";
-    }
+    statusEl.textContent = formatInitialStatus(place);
   }
 
-} else {
-  timeEl.textContent = "";
-}
+  if (serverRecord && serverRecord.updatedAt) {
+
+    const diffSeconds = lastServerTime - serverRecord.updatedAt;
+    const minutes = Math.floor(diffSeconds / 60);
+
+    const date = new Date(serverRecord.updatedAt * 1000);
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    const startOfToday = new Date();
+    startOfToday.setHours(0,0,0,0);
+
+    const isYesterday = date < startOfToday;
+
+    if (serverRecord.lifecycle === "stale") {
+      const elapsedText = formatStaleElapsedTime(diffSeconds);
+
+      const prefix = isYesterday ? "אתמול בשעה\u00A0" : "בשעה\u00A0";
+
+      statusEl.textContent =
+        formatServerStatus(serverRecord) + " " + prefix + hh + ":" + mm;
+
+      timeEl.textContent =
+        "(לפני " + elapsedText + ", " + (serverRecord.instructions || "") + ")";
+      
+    } else if (serverRecord.lifecycle === "expired") {
+      const dd = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+
+      timeEl.textContent =
+        "(" + dd + "/" + month + " ב-" + hh + ":" + mm + ")";
+    } else {
+      if (minutes === 0) {
+        timeEl.textContent = "ב " + hh + ":" + mm + ", לפני פחות מדקה";
+      } else {
+        const prefix = isYesterday ? "אתמול בשעה " : "בשעה ";
+        timeEl.textContent = prefix + hh + ":" + mm + ", לפני " + minutes + " דק'";
+      }
+    }
+
+  } else {
+    timeEl.textContent = "";
+  }
   return fragment;
 }
 
@@ -1536,13 +1545,20 @@ function formatServerStatus(serverRecord) {
   }
 
   if (serverRecord.lifecycle === "active") {
-    if (serverRecord.instructions === "האירוע הסתיים") {
+    if (serverRecord.status === "can_exit_stay_near") {
       return "אפשר לצאת 🥳 (" + serverRecord.instructions + "), העדכון התקבל";
     }
     return serverRecord.instructions || "";
   }
 
-  if (serverRecord.status === "no_recent_update" && serverRecord.lifecycle === "stale") {
+  if (
+    (
+      serverRecord.status === "no_recent_update" ||
+      serverRecord.status === "can_exit_stay_near" ||
+      serverRecord.status === "alert_last_known"
+    ) &&
+    serverRecord.lifecycle === "stale"
+  ) {
     return "העדכון האחרון התקבל";
   }
 
@@ -1555,6 +1571,29 @@ function formatServerStatus(serverRecord) {
   }
 
   return "";
+}
+
+function getPlaceVisualState(serverRecord) {
+  if (!serverRecord) {
+    return "none";
+  }
+
+  if (serverRecord.lifecycle === "expired" || serverRecord.lifecycle === "never") {
+    return "none";
+  }
+
+  if (serverRecord.status === "can_exit_stay_near") {
+    return "ended";
+  }
+
+  if (
+    serverRecord.status === "no_official_update" ||
+    serverRecord.status === "alert_last_known"
+  ) {
+    return "active-alert";
+  }
+
+  return "none";
 }
 
 function toggleFavorite(placeName) {
