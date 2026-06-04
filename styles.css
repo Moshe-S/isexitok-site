@@ -1394,15 +1394,15 @@ button:hover {
 
 #disclaimer {
   text-align: center;
-  font-weight: 500;
+  font-weight: 400;
   background: rgba(255, 180, 70, 0.08);
   border: 1px solid rgba(255, 180, 70, 0.35);
   border-radius: 12px;
 
-  padding: 10px 12px;
-  margin-bottom: 14px;
+  padding: 0.4em 0.5rem;
+  margin-bottom: 0.75rem;
 
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   color: #f2d2a2;
 }
