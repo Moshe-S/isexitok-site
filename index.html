@@ -49,6 +49,11 @@
       <symbol id="icon-onboarding-star" viewBox="0 -960 960 960">
         <path d="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z"/>
       </symbol>
+
+      <symbol id="icon-keyboard-double-arrow-down" viewBox="0 -960 960 960">
+        <path d="M480-200 240-440l56-56 184 183 184-183 56 56-240 240Zm0-240L240-680l56-56 184 183 184-183 56 56-240 240Z"/>
+      </symbol>
+
     </svg>
 
     <div id="sideDrawer" class="drawer" role="dialog" aria-modal="true" aria-label="תפריט">
@@ -107,6 +112,23 @@
                     </span>
                     <span class="search-toggle-close" aria-hidden="true">✕</span>
                 </button>
+
+                <div id="searchResultsIndicatorLayer">
+                  <button
+                    id="searchResultsIndicator"
+                    type="button"
+                    aria-live="polite"
+                    hidden
+                  >
+                    <span id="searchResultsIndicatorText"></span>
+                    <svg
+                      class="search-results-indicator__icon"
+                      aria-hidden="true"
+                    >
+                      <use href="#icon-keyboard-double-arrow-down"></use>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div id="controls">

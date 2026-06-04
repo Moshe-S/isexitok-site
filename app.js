@@ -9,6 +9,8 @@ const FAV_KEY = "favorites";
 const OPEN_IN_MY_PLACES_KEY = "openInMyPlacesOnLoad";
 const ONBOARDING_SEEN_KEY = "onboardingSeen";
 const MIN_STATUS_VISIBLE_MS = 1000;
+const SEARCH_RESULTS_SCROLL_THRESHOLD_REM = 0.7;
+const SEARCH_RESULTS_THRESHOLD_TOLERANCE_PX = 0.5;
 
 const qInput = document.getElementById("q");
 const clearBtn = document.getElementById("clear");
@@ -39,6 +41,10 @@ const drawerOverlay = document.getElementById("drawerOverlay");
 const closeDrawerBtn = document.getElementById("closeDrawerBtn");
 const navControls = document.getElementById("navControls");
 const currentScreenTitle = document.getElementById("currentScreenTitle");
+
+const searchResultsIndicator = document.getElementById("searchResultsIndicator");
+const searchResultsIndicatorText = document.getElementById("searchResultsIndicatorText");
+
 const utilityPanelsNav = document.getElementById("utilityPanelsNav");
 const mainContent = document.getElementById("mainContent");
 const drawerPrimarySection = document.getElementById("drawerPrimarySection");
@@ -250,6 +256,13 @@ let sortMode = loadSortMode();
 
 document.addEventListener("DOMContentLoaded", init);
 
+function getSearchResultsThresholdPx() {
+  const rootFontSize =
+    parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+
+  return SEARCH_RESULTS_SCROLL_THRESHOLD_REM * rootFontSize;
+}
+
 function updateBottomStatus(event) {
   if (!refreshStatus) return;
 
@@ -392,6 +405,14 @@ async function init() {
   attachEvents();
   updateNavLocation();
   window.addEventListener("resize", updateNavLocation);
+
+  window.addEventListener("resize", updateSearchResultsIndicatorState);
+
+  window.addEventListener(
+    "scroll",
+    updateSearchResultsIndicatorState,
+    { passive: true }
+  );
 
   if (localStorage.getItem(ONBOARDING_SEEN_KEY) !== "true") {
     openOnboardingModal("initial");
@@ -839,6 +860,12 @@ function attachEvents() {
   if (mobileClear) {
     mobileClear.addEventListener("click", handleClear);
   }
+  if (searchResultsIndicator) {
+    searchResultsIndicator.addEventListener(
+      "click",
+      handleSearchResultsIndicatorClick
+    );
+  }
   showFavoritesBtn.addEventListener("click", handleShowMyPlaces);
   showAllBtn.addEventListener("click", handleShowAll);
   goHomeBtn.addEventListener("click", handleGoHome);
@@ -953,10 +980,94 @@ function handleSearchInput() {
     currentView = "search";
   } else if (currentView === "search") {
     currentView = viewBeforeSearch;
+    hideSearchResultsIndicator();
   }
 
   renderCurrentView();
   updateSearchButtonsVisibility();
+}
+
+function updateSearchResultsIndicator(query, count) {
+  if (!searchResultsIndicator || !searchResultsIndicatorText) return;
+
+  searchResultsIndicator.hidden = query === "";
+
+  if (query === "") return;
+
+  searchResultsIndicatorText.textContent =
+    count === 0
+      ? "לא נמצאו תוצאות חיפוש"
+      : count === 1
+        ? "תוצאת חיפוש אחת"
+        : count + " תוצאות חיפוש";
+
+  searchResultsIndicator.classList.toggle("is-empty", count === 0);
+}
+
+function hideSearchResultsIndicator() {
+  if (!searchResultsIndicator) return;
+
+  searchResultsIndicator.hidden = true;
+
+  if (searchResultsIndicatorText) {
+    searchResultsIndicatorText.textContent = "";
+  }
+}
+
+function getFirstSearchResultRow() {
+  return list ? list.querySelector(".place-row") : null;
+}
+
+function updateSearchResultsIndicatorState() {
+  if (!searchResultsIndicator) return;
+
+  const firstRow = getFirstSearchResultRow();
+
+  if (currentView !== "search" || !firstRow || searchResultsIndicator.hidden) {
+    searchResultsIndicator.disabled = true;
+    return;
+  }
+
+  const topBar = document.getElementById("siteTopBar");
+
+  if (!topBar) {
+    searchResultsIndicator.disabled = true;
+    return;
+  }
+
+  const distance =
+    firstRow.getBoundingClientRect().top -
+    topBar.getBoundingClientRect().bottom;
+
+  searchResultsIndicator.disabled =
+    distance <= getSearchResultsThresholdPx() +
+    SEARCH_RESULTS_THRESHOLD_TOLERANCE_PX;
+}
+
+function handleSearchResultsIndicatorClick() {
+  if (!searchResultsIndicator || searchResultsIndicator.disabled) return;
+
+  collapseMobileSearchAfterEditing();
+
+  requestAnimationFrame(() => {
+    const firstRow = getFirstSearchResultRow();
+    const topBar = document.getElementById("siteTopBar");
+
+    if (!firstRow || !topBar) return;
+
+    const firstRowDocumentTop =
+      firstRow.getBoundingClientRect().top + window.scrollY;
+
+    const targetScrollY =
+      firstRowDocumentTop -
+      topBar.getBoundingClientRect().height -
+      getSearchResultsThresholdPx();
+
+    window.scrollTo({
+      top: Math.max(0, targetScrollY),
+      behavior: "smooth"
+    });
+  });
 }
 
 function updateSearchButtonsVisibility() {
@@ -979,6 +1090,9 @@ function collapseMobileSearchAfterEditing() {
   const hasQuery =
     (qInput && qInput.value.trim() !== "") ||
     (mobileQ && mobileQ.value.trim() !== "");
+  if (mobileQ) {
+    mobileQ.blur();
+  }
 
   setMobileNavState(hasQuery ? "search-active-compact" : "default");
   updateSearchButtonsVisibility();
@@ -987,19 +1101,26 @@ function collapseMobileSearchAfterEditing() {
 function handleClear() {
   const hadQuery = qInput.value.trim() !== "";
 
+  const wasMobileSearchState =
+    app &&
+    (app.classList.contains("search-open") ||
+      app.classList.contains("search-active-compact"));
+
   if (qInput) qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+
+  hideSearchResultsIndicator();
 
   if (hadQuery && currentView === "search") {
     currentView = viewBeforeSearch;
   }
 
   renderCurrentView();
-  if (app && app.classList.contains("search-active-compact")) {
-    setMobileNavState("default");
+  if (wasMobileSearchState) {
+    setMobileNavState("search");
   }
 
-  if (mobileQ && document.activeElement === mobileQ) {
+  if (wasMobileSearchState && mobileQ) {
     mobileQ.focus();
   } else if (qInput) {
     qInput.focus();
@@ -1012,6 +1133,7 @@ function handleShowMyPlaces() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  hideSearchResultsIndicator();
   setMobileNavState("default");
   updateSearchButtonsVisibility();
   currentView = "myPlaces";
@@ -1023,6 +1145,7 @@ function handleShowAll() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  hideSearchResultsIndicator();
   setMobileNavState("default");
   updateSearchButtonsVisibility();
   currentView = "all";
@@ -1034,6 +1157,7 @@ function handleGoHome() {
   closeAllPanels();
   qInput.value = "";
   if (mobileQ) mobileQ.value = "";
+  hideSearchResultsIndicator();
   setMobileNavState("default");
   updateSearchButtonsVisibility();
   currentView = "home";
@@ -1055,14 +1179,31 @@ function handleMenuToggle() {
 function handleSearchToggle() {
   if (!app) return;
 
-  const isOpen = app.classList.contains("search-open");
+  const isOpen =
+  app.classList.contains("search-open") ||
+  app.classList.contains("search-active-compact");
   if (isOpen) {
-    collapseMobileSearchAfterEditing();
+    closeMobileSearch();
   } else {
     setMobileNavState("search");
     updateSearchButtonsVisibility();
   }
 
+  updateSearchButtonsVisibility();
+}
+
+function closeMobileSearch() {
+  if (qInput) qInput.value = "";
+  if (mobileQ) mobileQ.value = "";
+
+  hideSearchResultsIndicator();
+
+  if (currentView === "search") {
+    currentView = viewBeforeSearch;
+  }
+
+  setMobileNavState("default");
+  renderCurrentView();
   updateSearchButtonsVisibility();
 }
 
@@ -1315,10 +1456,12 @@ function renderSearch() {
   if (query === "") {
     currentView = viewBeforeSearch;
     renderCurrentView();
+    hideSearchResultsIndicator();
     return;
   }
 
   const filtered = allPlaces.filter((place) => matchesPlace(place, query));
+  updateSearchResultsIndicator(query, filtered.length);
   meta.textContent = "";
   renderList(filtered);
 }
@@ -1386,11 +1529,12 @@ function renderList(items) {
     const rowNode = createPlaceRow(place);
 
     const favBtn = rowNode.querySelector(".fav");
-if (favBtn) {
-  favBtn.tabIndex = index === 0 ? 0 : -1;
-}
+  if (favBtn) {
+    favBtn.tabIndex = index === 0 ? 0 : -1;
+  }
     list.appendChild(rowNode);
   });
+  updateSearchResultsIndicatorState();
 }
 
 function createPlaceRow(place) {
