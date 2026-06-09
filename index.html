@@ -54,6 +54,18 @@
         <path d="M480-200 240-440l56-56 184 183 184-183 56 56-240 240Zm0-240L240-680l56-56 184 183 184-183 56 56-240 240Z"/>
       </symbol>
 
+      <symbol id="icon-satellite" viewBox="0 -960 960 960">
+        <path d="M560-32v-80q117 0 198.5-81.5T840-392h80q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T560-32Zm0-160v-80q50 0 85-35t35-85h80q0 83-58.5 141.5T560-192ZM222-57q-15 0-30-6t-27-17L23-222q-11-12-17-27t-6-30q0-16 6-30.5T23-335l127-127q23-23 57-23.5t57 22.5l50 50 28-28-50-50q-23-23-23-56t23-56l57-57q23-23 56.5-23t56.5 23l50 50 28-28-50-50q-23-23-23-56.5t23-56.5l127-127q12-12 27-18t30-6q15 0 29.5 6t26.5 18l142 142q12 11 17.5 25.5T895-730q0 15-5.5 30T872-673L745-546q-23 23-56.5 23T632-546l-50-50-28 28 50 50q23 23 22.5 56.5T603-405l-56 56q-23 23-56.5 23T434-349l-50-50-28 28 50 50q23 23 22.5 57T405-207L278-80q-11 11-25.5 17T222-57Zm0-79 42-42-142-142-42 42 142 142Zm85-85 42-42-142-142-42 42 142 142Zm184-184 56-56-142-142-56 56 142 142Zm198-198 42-42-142-142-42 42 142 142Zm85-85 42-42-142-142-42 42 142 142ZM448-504Z"/>
+      </symbol>
+
+      <symbol id="icon-shower" viewBox="0 -960 960 960">
+        <path d="M320-240q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm160 0q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm160 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240ZM200-400v-80q0-106 68-184t172-92v-84h80v84q104 14 172 92t68 184v80H200Zm80-80h400q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480Zm40 360q-17 0-28.5-11.5T280-160q0-17 11.5-28.5T320-200q17 0 28.5 11.5T360-160q0 17-11.5 28.5T320-120Zm160 0q-17 0-28.5-11.5T440-160q0-17 11.5-28.5T480-200q17 0 28.5 11.5T520-160q0 17-11.5 28.5T480-120Zm160 0q-17 0-28.5-11.5T600-160q0-17 11.5-28.5T640-200q17 0 28.5 11.5T680-160q0 17-11.5 28.5T640-120ZM480-480Z"/>
+      </symbol>
+
+      <symbol id="icon-map-search" viewBox="0 -960 960 960">
+        <path d="M640-560v-126 126ZM174-132q-20 8-37-4.5T120-170v-560q0-13 7.5-23t20.5-15l212-72 240 84 186-72q20-8 37 4.5t17 33.5v337q-15-23-35.5-42T760-528v-204l-120 46v126q-21 0-41 3.5T560-546v-140l-160-56v523l-226 87Zm26-96 120-46v-468l-120 40v474Zm496.5-32q22.5-20 23.5-60 1-34-22.5-57T640-400q-34 0-57 23t-23 57q0 34 23 57t57 23q34 0 56.5-20ZM640-160q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 23-5.5 43.5T778-238l102 102-56 56-102-102q-18 11-38.5 16.5T640-160ZM320-742v468-468Z"/>
+      </symbol>
+
     </svg>
 
     <div id="sideDrawer" class="drawer" role="dialog" aria-modal="true" aria-label="תפריט">
@@ -181,74 +193,205 @@
           >
             התחלה מהירה
           </button>
-          <button class="panelToggleBtn" id="infoToggleBtn" type="button" aria-expanded="false" aria-controls="infoPanel">אודות האתר</button>
-          <button class="panelToggleBtn" id="linksToggleBtn" type="button" aria-expanded="false" aria-controls="linksPanel">קישורים נוספים</button>
-          <button class="panelToggleBtn" id="gameToggleBtn" type="button" aria-expanded="false" aria-controls="gamePanel">משחק יירוט</button>
+
+          <button
+            class="panelToggleBtn"
+            id="aboutViewBtn"
+            type="button"
+          >
+            אודות האתר
+          </button>
+        </div>
+
+        <div id="homeContent" class="home-content">
+
+          <section class="home-section">
+            <h2>בשביל מה האתר קיים?</h2>
+
+            <p>
+              לאחר קבלת התרעה, יש להמתין להודעת סיום לפני שמותר לצאת מהמרחב המוגן. <br>
+              האתר מאפשר לבדוק עבור יישובים ומקומות שונים האם כבר פורסמה הודעת סיום.
+            </p>
+
+            <ul class="home-guide-list">
+
+              <li class="home-guide-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-onboarding-search"></use>
+                </svg>
+
+                <p>
+                  ניתן לחפש מקום באמצעות <strong>שדה החיפוש</strong> או לעבור לרשימת המקומות המלאה.
+                </p>
+              </li>
+
+              <li class="home-guide-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-onboarding-star"></use>
+                </svg>
+
+                <p>
+                  ניתן לשמור מקומות ברשימת <strong>"המקומות שלי"</strong> לצפייה מהירה.
+                </p>
+              </li>
+
+              <li class="home-guide-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-onboarding-autorenew"></use>
+                </svg>
+
+                <p>
+                  המידע מתעדכן באופן אוטומטי. ניתן גם לעדכן אותו ידנית באמצעות <strong>כפתור הרענון</strong>.
+                </p>
+              </li>
+
+            </ul>
+          </section>
+
+          <section class="home-section">
+            <h2>מידע חשוב</h2>
+
+            <p class="home-action-row">
+              <svg class="home-icon" aria-hidden="true" focusable="false">
+                <use href="#icon-sync-warning"></use>
+              </svg>
+
+              <span>
+                האתר אינו מערכת התרעות ואינו מהווה תחליף לאפליקציות התרעה או למקורות מידע רשמיים.
+              </span>
+            </p>
+
+            <p>
+              האתר מציג התרעות והודעות סיום מהיממה האחרונה. עבור מידע ישן יותר, מוצג מועד העדכון האחרון של המקום.
+            </p>
+          </section>
+
+          <section class="home-section">
+            <h2>קישורים שימושיים</h2>
+
+            <ul class="home-links-list">
+              <li class="home-link-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-map-search"></use>
+                </svg>
+
+                <div class="home-link-content">
+                  <h3>
+                    <a href="https://saferoutemap.space/" target="_blank" rel="noopener noreferrer">
+                      תכנון מסלול ריצה ליד מרחבים מוגנים
+                    </a>
+                  </h3>
+                  <p>כלי חיצוני לתכנון מסלולי ריצה תוך התחשבות במרחבים מוגנים בסביבה.</p>
+                </div>
+              </li>
+
+              <li class="home-link-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-satellite"></use>
+                </svg>
+
+                <div class="home-link-content">
+                  <h3>
+                    <a href="https://gpsjam.org/" target="_blank" rel="noopener noreferrer">
+                      שיבושי GPS
+                    </a>
+                  </h3>
+                  <p>הנתונים אינם מוצגים בזמן אמת ומבוססים על מידע שנאסף מטיסות.</p>
+                </div>
+              </li>
+
+              <li class="home-link-row">
+                <svg class="home-icon" aria-hidden="true" focusable="false">
+                  <use href="#icon-shower"></use>
+                </svg>
+
+                <div class="home-link-content">
+                  <h3>
+                    <a href="https://canishower.com/" target="_blank" rel="noopener noreferrer">
+                      מתי הכי בטוח להתקלח?
+                    </a>
+                  </h3>
+                  <p>ניתוח סטטיסטי המבוסס על נתוני עבר.</p>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <div class="home-more-link">
+            <button
+              type="button"
+              class="home-more-link-btn"
+              id="homeAboutBtn"
+            >
+              <span>למידע נוסף אודות האתר</span>
+              <svg class="home-more-link-icon" aria-hidden="true" focusable="false">
+                <use href="#icon-keyboard-double-arrow-down"></use>
+              </svg>
+            </button>
+          </div>
+
         </div>
         
-        <div class="panel" id="infoPanel" hidden tabindex="-1">
+        <section id="aboutContent" hidden>
 
-          <div id="infoPanelContent">
-            <h2 class="panelTitle">אודות האתר</h2>
-            <section id="sitePurpose">
-              <p id="sitePurposeText"></p>
+          <div id="aboutContentInner">
+            <h2 class="aboutTitle">אודות האתר</h2>
+
+            <p>
+              האתר נועד לאפשר בדיקה יזומה של מצב ההתרעות והודעות הסיום עבור מקומות שונים, במקום להמתין להתרעה או להודעת סיום.
+            </p>
+
+            <section class="about-section">
+              <h3>מקורות מידע ומגבלות</h3>
+
+              <p>
+                המידע באתר מבוסס על מקורות מידע אזרחיים וממשקים ציבוריים.
+              </p>
+
+              <p>
+                האתר אינו מקור מידע רשמי ואינו מהווה תחליף לפיקוד העורף או לאפליקציות התרעה.
+              </p>
+
+              <p>
+                יש להישמע תמיד להנחיות ולהודעות הרשמיות של פיקוד העורף.
+              </p>
             </section>
-            <div>האתר מציג עדכון אחרון שנקלט בשרת המקומי, עד כשעה אחורה.</div>
-            <a href="https://www.oref.org.il/heb/alerts-history" target="_blank" 
-              rel="noopener noreferrer">להתרעות האחרונות באתר פיקוד העורף</a>
-            <div>האתר שומר את רשימת "המקומות שלי" מקומית בדפדפן בלבד (localStorage), ללא cookies וללא שליחת מידע.</div>
-            
-            <div class="panelActions">
-              <button id="infoCloseBtn" class="panelCloseBtn" type="button">סגור</button>
-            </div>
+
+            <section class="about-section">
+              <h3>המידע באתר</h3>
+
+              <p>
+                התרעות והודעות סיום מוצגות בצורה בולטת במהלך השעה הראשונה ממועד קבלתן.
+              </p>
+
+              <p>
+                לאחר מכן, הדגש עובר למועד העדכון האחרון שהתקבל עבור המקום, והאירוע עצמו מוצג כמידע משני.
+              </p>
+
+              <p>
+                לאחר 24 שעות, מוצג רק מועד העדכון האחרון שהתקבל.
+              </p>
+
+              <p>
+                <a
+                  href="https://www.oref.org.il/heb/alerts-history"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  להתרעות האחרונות באתר פיקוד העורף
+                </a>
+              </p>
+            </section>
+
+            <section class="about-section">
+              <h3>פרטיות</h3>
+
+              <p>
+                האתר שומר את רשימת "המקומות שלי" מקומית בדפדפן בלבד (localStorage), ללא cookies וללא שליחת מידע.
+              </p>
+            </section>
           </div>
-        </div>
-
-        <div class="panel" id="linksPanel" hidden tabindex="-1">
-
-          <div id="linksPanelContent">
-            <h2 class="panelTitle">קישורים נוספים</h2>
-            <p>עוד אתרים שנוצרו סביב המצב. חלקם פרקטיים וחלקם הומוריסטיים.</p>
-
-              <ul id="externalLinksList">
-                <li>
-                  <a href="https://saferoutemap.space/" target="_blank" rel="noopener noreferrer">
-                    תכנון מסלול ריצה ליד מרחבים מוגנים
-                  </a>
-                </li>
-
-                <li>
-                  <a href="https://canishower.com/" target="_blank" rel="noopener noreferrer">
-                    מתי הכי בטוח להתקלח (ניתוח סטטיסטי, לא כלי רשמי)
-                  </a>
-                </li>
-
-                <li>
-                  <a href="https://stress-meter-pro.base44.app/" target="_blank" rel="noopener noreferrer">
-                    מדד המסכנות (הומור)
-                  </a>
-                </li>
-              </ul>
-          </div>
-
-          <div class="panelActions">
-            <button id="linksCloseBtn" class="panelCloseBtn" type="button">סגור</button>
-          </div>
-
-        </div>
-
-        <div class="panel" id="gamePanel" hidden tabindex="-1">
-
-          <div id="gamePanelContent">
-            <h2 class="panelTitle">משחק יירוט</h2>
-            <h1> בקרוב 🚀 Coming Soon</h1>
-          </div>
-
-          <div class="panelActions">
-            <button id="gameCloseBtn" class="panelCloseBtn" type="button">סגור</button>
-          </div>
-
-        </div>
+          </section>
 
         <div id="listToolbar" hidden>
           <div id="sortControls">

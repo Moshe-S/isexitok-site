@@ -1,7 +1,7 @@
 "use strict";
 
 const API_BASE = window.APP_CONFIG?.API_BASE || "https://api.isexitok.com";
-const HELP_TEXT = "להצגת מצב לפי מיקום, הקלידו שם מקום או אזור";
+const HELP_TEXT = "";
 const NO_FAV_TEXT = "אין עדיין מקומות שמורים";
 const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, צריך להוסיף לפחות מקום אחד.";
 
@@ -47,10 +47,18 @@ const searchResultsIndicatorText = document.getElementById("searchResultsIndicat
 
 const utilityPanelsNav = document.getElementById("utilityPanelsNav");
 const mainContent = document.getElementById("mainContent");
+
+const homeContent = document.getElementById("homeContent");
+const placesListArea = document.getElementById("placesListArea");
+const listToolbar = document.getElementById("listToolbar");
+const aboutContent = document.getElementById("aboutContent");
+
 const drawerPrimarySection = document.getElementById("drawerPrimarySection");
 const drawerSecondarySection = document.getElementById("drawerSecondarySection");
 
 const aboutSiteBtn = document.getElementById("aboutSiteBtn");
+const aboutViewBtn = document.getElementById("aboutViewBtn");
+const homeAboutBtn = document.getElementById("homeAboutBtn");
 
 const onboardingOverlay = document.getElementById("onboardingOverlay");
 const onboardingModal = document.getElementById("onboardingModal");
@@ -61,7 +69,6 @@ const onboardingConfirmBtn = document.getElementById("onboardingConfirmBtn");
 let onboardingLastTrigger = null;
 
 const rowTemplate = document.getElementById("placeRowTemplate");
-const sitePurposeText = document.getElementById("sitePurposeText");
 
 const panels = document.querySelectorAll(".panel");
 const panelToggleBtns = document.querySelectorAll(".panelToggleBtn");
@@ -391,11 +398,6 @@ function setServerWarningState(state) {
 }
 
 async function init() {
-    if (sitePurposeText) {
-    sitePurposeText.textContent =
-      "";
-  }
-
   await loadPlacesCatalog();
   updateSortButtonLabel();
   const defaultSortToggle = document.getElementById("defaultSortToggle");
@@ -950,6 +952,14 @@ function attachEvents() {
     });
   }
 
+  if (aboutViewBtn) {
+    aboutViewBtn.addEventListener("click", handleShowAbout);
+  }
+
+  if (homeAboutBtn) {
+    homeAboutBtn.addEventListener("click", handleShowAbout);
+  }
+
   if (closeOnboardingBtn) {
     closeOnboardingBtn.addEventListener("click", closeOnboardingModal);
   }
@@ -1164,6 +1174,18 @@ function handleGoHome() {
   renderCurrentView();
 }
 
+function handleShowAbout() {
+  closeDrawer();
+  closeAllPanels();
+  qInput.value = "";
+  if (mobileQ) mobileQ.value = "";
+  hideSearchResultsIndicator();
+  setMobileNavState("default");
+  updateSearchButtonsVisibility();
+  currentView = "about";
+  renderCurrentView();
+}
+
 function handleMenuToggle() {
   if (!sideDrawer || !drawerOverlay) return;
 
@@ -1348,13 +1370,40 @@ panelToggleBtns.forEach((btn) => {
   });
 });
 
+function updateViewVisibility() {
+  const isHomeView = currentView === "home";
+  const isAboutView = currentView === "about";
+
+  if (homeContent) {
+    homeContent.hidden = !isHomeView;
+  }
+
+  if (aboutContent) {
+    aboutContent.hidden = !isAboutView;
+  }
+
+  if (placesListArea) {
+    placesListArea.hidden = isHomeView || isAboutView;
+  }
+
+  if (listToolbar) {
+    listToolbar.hidden = isHomeView || isAboutView;
+  }
+}
+
 function renderCurrentView() {
   hideTransientAreas();
+  updateViewVisibility();
   updateHomeButton();
 
-  [showFavoritesBtn, showAllBtn, goHomeBtn].forEach(btn => btn.classList.remove("is-active"));
+  [showFavoritesBtn, showAllBtn, goHomeBtn, aboutViewBtn].forEach(btn => {
+    if (btn) btn.classList.remove("is-active");
+  });
+
   if (currentView === "home") {
     goHomeBtn.classList.add("is-active");
+  } else if (currentView === "about") {
+    if (aboutViewBtn) aboutViewBtn.classList.add("is-active");
   } else if (currentView === "myPlaces") {
     showFavoritesBtn.classList.add("is-active");
   } else if (currentView === "all") {
@@ -1365,6 +1414,11 @@ function renderCurrentView() {
 
   if (currentView === "home") {
     renderHome();
+    return;
+  }
+
+  if (currentView === "about") {
+    renderAbout();
     return;
   }
 
@@ -1448,6 +1502,10 @@ function renderMyPlaces() {
 function renderAll() {
   meta.textContent = "";
   renderList(allPlaces);
+}
+
+function renderAbout() {
+  meta.textContent = "";
 }
 
 function renderSearch() {
@@ -1758,7 +1816,13 @@ function updateCurrentScreenTitle() {
     return;
   }
 
-  const activeButton = document.querySelector("#navControls button.is-active");
+  let activeButton = null;
+
+  if (currentView === "about") {
+    activeButton = aboutViewBtn;
+  } else {
+    activeButton = document.querySelector("#navControls button.is-active");
+  }
 
   if (!activeButton) {
     currentScreenTitle.textContent = "";
