@@ -259,6 +259,10 @@ let initialConnectionFailed = false;
 let lastManualRefreshAt = 0;
 let manualRefreshPending = false;
 
+let pendingConnectionGrace = null;
+let connectionGraceBaselineFetchCompletedAt = 0;
+let lastFetchCompletedAt = 0;
+
 let sortMode = loadSortMode();
 
 document.addEventListener("DOMContentLoaded", init);
@@ -492,20 +496,37 @@ function startPolling() {
     document.body.classList.remove("data-stale");
 
     if (initialConnectionFailed || elapsed >= 5 * 60 * 1000) {
-      currentConnectionState = "connection_lost";
-      document.body.classList.add("data-stale");
-      setServerWarning(
-        "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.",
-        "is-error"
-      );
-      updateBottomStatus("error");
+      if (pendingConnectionGrace !== "error") {
+        pendingConnectionGrace = "error";
+        connectionGraceBaselineFetchCompletedAt = lastFetchCompletedAt;
+      } else if (
+        lastFetchCompletedAt > connectionGraceBaselineFetchCompletedAt &&
+        lastFetchFailed
+      ) {
+        currentConnectionState = "connection_lost";
+        document.body.classList.add("data-stale");
+        setServerWarning(
+          "קיימת כרגע בעיית תקשורת עם השרת. ייתכן שהמידע המוצג אינו עדכני, נמשיך לנסות.",
+          "is-error"
+        );
+        updateBottomStatus("error");
+      }
+
     } else if (elapsed >= 90000) {
-      currentConnectionState = "connection_warning";
-      setServerWarning(
-        "ייתכן שיש בעיית תקשורת עם השרת, נמשיך לנסות.",
-        "is-warning"
-      );
-      updateBottomStatus("delay");
+      if (pendingConnectionGrace !== "warning") {
+        pendingConnectionGrace = "warning";
+        connectionGraceBaselineFetchCompletedAt = lastFetchCompletedAt;
+      } else if (
+        lastFetchCompletedAt > connectionGraceBaselineFetchCompletedAt &&
+        lastFetchFailed
+      ) {
+        currentConnectionState = "connection_warning";
+        setServerWarning(
+          "ייתכן שיש בעיית תקשורת עם השרת, נמשיך לנסות.",
+          "is-warning"
+        );
+        updateBottomStatus("delay");
+      }
     } else if (sourceHealthState === "source_lost") {
       currentConnectionState = "source_lost";
       document.body.classList.add("data-stale");
@@ -702,6 +723,8 @@ async function fetchFullSnapshot() {
     lastServerTime = data.serverTime;
     lastSuccessfulRefreshAt = Date.now();
     lastFetchFailed = false;
+    lastFetchCompletedAt = Date.now();
+    pendingConnectionGrace = null;
     initialConnectionFailed = false;
     isRequestInFlight = false;
     if (manualRefreshPending) {
@@ -718,6 +741,7 @@ async function fetchFullSnapshot() {
     clearTimeout(timeoutId);
     isRequestInFlight = false;
     lastFetchFailed = true;
+    lastFetchCompletedAt = Date.now();
     return false;
   }
 }
@@ -768,6 +792,8 @@ async function fetchIncrementalUpdates() {
     lastServerTime = data.serverTime;
     lastSuccessfulRefreshAt = Date.now();
     lastFetchFailed = false;
+    lastFetchCompletedAt = Date.now();
+    pendingConnectionGrace = null;
     initialConnectionFailed = false;
     isRequestInFlight = false;
     if (manualRefreshPending) {
@@ -786,6 +812,7 @@ async function fetchIncrementalUpdates() {
     clearTimeout(timeoutId);
     isRequestInFlight = false;
     lastFetchFailed = true;
+    lastFetchCompletedAt = Date.now();
         return false;
   }
 }
@@ -1148,6 +1175,7 @@ function handleShowMyPlaces() {
   updateSearchButtonsVisibility();
   currentView = "myPlaces";
   renderCurrentView();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function handleShowAll() {
@@ -1160,6 +1188,7 @@ function handleShowAll() {
   updateSearchButtonsVisibility();
   currentView = "all";
   renderCurrentView();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function handleGoHome() {
@@ -1172,6 +1201,7 @@ function handleGoHome() {
   updateSearchButtonsVisibility();
   currentView = "home";
   renderCurrentView();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function handleShowAbout() {
@@ -1184,6 +1214,7 @@ function handleShowAbout() {
   updateSearchButtonsVisibility();
   currentView = "about";
   renderCurrentView();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function handleMenuToggle() {
