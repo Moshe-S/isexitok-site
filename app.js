@@ -44,6 +44,7 @@ const currentScreenTitle = document.getElementById("currentScreenTitle");
 
 const searchResultsIndicator = document.getElementById("searchResultsIndicator");
 const searchResultsIndicatorText = document.getElementById("searchResultsIndicatorText");
+const desktopSearchResultsIndicator = document.getElementById("desktopSearchResultsIndicator");
 
 const utilityPanelsNav = document.getElementById("utilityPanelsNav");
 const mainContent = document.getElementById("mainContent");
@@ -116,7 +117,6 @@ function openDrawer() {
     drawerOverlay.classList.add("is-visible");
 
   if (menuToggleBtn) {
-    menuToggleBtn.textContent = "✕";
     menuToggleBtn.setAttribute("aria-expanded", "true");
   }
   app.classList.add("drawer-open");
@@ -133,7 +133,6 @@ function closeDrawer() {
   drawerOverlay.classList.remove("is-visible");
   
   if (menuToggleBtn) {
-    menuToggleBtn.textContent = "☰";
     menuToggleBtn.setAttribute("aria-expanded", "false");
   }
   app.classList.remove("drawer-open");
@@ -1024,6 +1023,14 @@ function handleSearchInput() {
   updateSearchButtonsVisibility();
 }
 
+function getSearchResultsIndicatorText(count) {
+  return count === 0
+    ? "לא נמצאו תוצאות חיפוש"
+    : count === 1
+      ? "תוצאת חיפוש אחת"
+      : count + " תוצאות חיפוש";
+}
+
 function updateSearchResultsIndicator(query, count) {
   if (!searchResultsIndicator || !searchResultsIndicatorText) return;
 
@@ -1031,23 +1038,30 @@ function updateSearchResultsIndicator(query, count) {
 
   if (query === "") return;
 
-  searchResultsIndicatorText.textContent =
-    count === 0
-      ? "לא נמצאו תוצאות חיפוש"
-      : count === 1
-        ? "תוצאת חיפוש אחת"
-        : count + " תוצאות חיפוש";
+  const indicatorText = getSearchResultsIndicatorText(count);
+
+  searchResultsIndicatorText.textContent = indicatorText;
+
+  if (desktopSearchResultsIndicator) {
+    desktopSearchResultsIndicator.hidden = false;
+    desktopSearchResultsIndicator.textContent = indicatorText;
+  }
 
   searchResultsIndicator.classList.toggle("is-empty", count === 0);
 }
 
 function hideSearchResultsIndicator() {
-  if (!searchResultsIndicator) return;
-
-  searchResultsIndicator.hidden = true;
+  if (searchResultsIndicator) {
+    searchResultsIndicator.hidden = true;
+  }
 
   if (searchResultsIndicatorText) {
     searchResultsIndicatorText.textContent = "";
+  }
+
+  if (desktopSearchResultsIndicator) {
+    desktopSearchResultsIndicator.hidden = true;
+    desktopSearchResultsIndicator.textContent = "";
   }
 }
 

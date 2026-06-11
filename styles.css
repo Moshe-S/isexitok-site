@@ -521,6 +521,33 @@ button:active {
   display: none;
 }
 
+#desktopSearchResultsIndicator {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  #desktopSearchResultsIndicator {
+    position: absolute;
+
+    top: calc(100% - 1.5rem);
+    left: 0;
+    right: 0;
+
+    display: block;
+
+    text-align: center;
+
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+
+    pointer-events: none;
+  }
+
+  #desktopSearchResultsIndicator[hidden] {
+    display: none !important;
+  }
+}
+
 #myPlacesPreferenceArea {
   display: flex;
   align-items: center;
@@ -1564,6 +1591,43 @@ button:hover {
 
 #app.search-active-compact .search-toggle-close {
   display: inline-flex;
+}
+
+#menuToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+
+  border: none;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+
+  cursor: pointer;
+}
+
+.menu-toggle-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+
+  fill: currentColor;
+  display: block;
+}
+
+.menu-toggle-icon-close {
+  display: none;
+}
+
+#menuToggleBtn[aria-expanded="true"] .menu-toggle-icon-menu {
+  display: none;
+}
+
+#menuToggleBtn[aria-expanded="true"] .menu-toggle-icon-close {
+  display: block;
 }
 
 #disclaimer {
