@@ -1563,7 +1563,9 @@ function renderSearch() {
     return;
   }
 
-  const filtered = allPlaces.filter((place) => matchesPlace(place, query));
+  const filtered = allPlaces
+    .filter((place) => matchesPlace(place, query))
+    .sort((a, b) => compareSearchResults(a, b, query));
   updateSearchResultsIndicator(query, filtered.length);
   meta.textContent = "";
   renderList(filtered);
@@ -1580,6 +1582,27 @@ function matchesPlace(place, query) {
   }
 
   return aliases.some((alias) => alias.includes(query));
+}
+
+function compareSearchResults(a, b, query) {
+  const aScore = getSearchScore(a, query);
+  const bScore = getSearchScore(b, query);
+
+  if (aScore !== bScore) {
+    return bScore - aScore;
+  }
+
+  return String(a.name || "").localeCompare(String(b.name || ""), "he");
+}
+
+function getSearchScore(place, query) {
+  const name = String(place.name || "").toLowerCase();
+
+  if (name === query) return 3;
+  if (name.startsWith(query)) return 2;
+  if (name.includes(query)) return 1;
+
+  return 0;
 }
 
 function getSortedItems(items) {
