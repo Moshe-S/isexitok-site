@@ -1,6 +1,14 @@
 "use strict";
 
-const API_BASE = window.APP_CONFIG?.API_BASE || "https://api.isexitok.com";
+const API_BASE = window.APP_CONFIG?.API_BASE || "https://api.oktoexit.com";
+const API_FALLBACK_BASE = window.APP_CONFIG?.API_FALLBACK_BASE || "https://api.isexitok.com";
+const API_REQUEST_TIMEOUT_MS = 10000;
+const API_FALLBACK_FAILURE_THRESHOLD = 3;
+
+let activeApiBase = API_BASE;
+let primaryApiFailureCount = 0;
+let apiFallbackTelemetrySent = false;
+
 const HELP_TEXT = "";
 const NO_FAV_TEXT = "אין עדיין מקומות שמורים";
 const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, צריך להוסיף לפחות מקום אחד.";
@@ -590,6 +598,103 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getApiFailureReason(err) {
+  if (err && err.name === "AbortError") {
+    return "timeout";
+  }
+
+  if (err && err.apiFailureReason) {
+    return err.apiFailureReason;
+  }
+
+  if (err instanceof TypeError) {
+    return "network_error";
+  }
+
+  return "unknown";
+}
+
+async function fetchJsonFromApi(baseUrl, endpoint, options, validateData) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${baseUrl}${endpoint}`, {
+      ...options,
+      signal: controller.signal
+    });
+
+    if (!res.ok) {
+      const err = new Error("HTTP " + res.status);
+      err.apiFailureReason = "http_error";
+      throw err;
+    }
+
+    const data = await res.json();
+
+    if (!validateData(data)) {
+      const err = new Error("Invalid response");
+      err.apiFailureReason = "invalid_response";
+      throw err;
+    }
+
+    return data;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function reportApiFallbackActivated(endpoint, reason) {
+  if (apiFallbackTelemetrySent || !API_FALLBACK_BASE) {
+    return;
+  }
+
+  apiFallbackTelemetrySent = true;
+
+  try {
+    await fetch(`${API_FALLBACK_BASE}/api/client-events/api-fallback-activated`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        failedApi: API_BASE,
+        fallbackApi: API_FALLBACK_BASE,
+        endpoint: endpoint.split("?")[0],
+        reason
+      })
+    });
+  } catch (err) {
+  }
+}
+
+async function apiFetchJson(endpoint, options, validateData) {
+  if (activeApiBase === API_FALLBACK_BASE || !API_FALLBACK_BASE) {
+    return await fetchJsonFromApi(activeApiBase, endpoint, options, validateData);
+  }
+
+  try {
+    const data = await fetchJsonFromApi(API_BASE, endpoint, options, validateData);
+    primaryApiFailureCount = 0;
+    return data;
+  } catch (err) {
+    const reason = getApiFailureReason(err);
+    primaryApiFailureCount += 1;
+
+    if (primaryApiFailureCount < API_FALLBACK_FAILURE_THRESHOLD) {
+      throw err;
+    }
+
+    const data = await fetchJsonFromApi(API_FALLBACK_BASE, endpoint, options, validateData);
+
+    activeApiBase = API_FALLBACK_BASE;
+    await reportApiFallbackActivated(endpoint, reason);
+
+    return data;
+  }
+}
+
 async function showStatusForAtLeast(text, state = "") {
   setServerWarning(text, state);
   await delay(MIN_STATUS_VISIBLE_MS);
@@ -701,18 +806,14 @@ async function fetchFullSnapshot() {
   isRequestInFlight = true;
   setSyncIndicatorState("is-checking");
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
   
   try {
 
-  const res = await fetch(`${API_BASE}/api/alert`, { cache: "no-store", signal: controller.signal });
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
-    }
-
-    const data = await res.json();
-    clearTimeout(timeoutId);
+  const data = await apiFetchJson(
+    "/api/alert",
+    { cache: "no-store" },
+    (data) => data && data.places
+  );
 
     if (!data || !data.places) {
       throw new Error("Invalid response");
@@ -737,7 +838,6 @@ async function fetchFullSnapshot() {
         return true;
 
   } catch (err) {
-    clearTimeout(timeoutId);
     isRequestInFlight = false;
     lastFetchFailed = true;
     lastFetchCompletedAt = Date.now();
@@ -758,26 +858,17 @@ async function fetchIncrementalUpdates() {
   isRequestInFlight = true;
   setSyncIndicatorState("is-checking");
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-  
   try {
     if (lastServerTime === null) {
       isRequestInFlight = false;
       return await fetchFullSnapshot();
     }
     
-    const res = await fetch(
-      `${API_BASE}/api/updates?since=` + encodeURIComponent(lastServerTime),
-      { cache: "no-store", signal: controller.signal }
+    const data = await apiFetchJson(
+      "/api/updates?since=" + encodeURIComponent(lastServerTime),
+      { cache: "no-store" },
+      (data) => data && data.updates
     );
-
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
-    }
-
-    const data = await res.json();
-    clearTimeout(timeoutId);
 
     if (!data || !data.updates) {
       throw new Error("Invalid response");
@@ -808,7 +899,6 @@ async function fetchIncrementalUpdates() {
 
   } catch (err) {
     
-    clearTimeout(timeoutId);
     isRequestInFlight = false;
     lastFetchFailed = true;
     lastFetchCompletedAt = Date.now();
@@ -818,13 +908,11 @@ async function fetchIncrementalUpdates() {
 
 async function fetchServerStatus() {
   try {
-    const res = await fetch(`${API_BASE}/api/status`, { cache: "no-store" });
-
-    if (!res.ok) {
-      return;
-    }
-
-    const data = await res.json();
+    const data = await apiFetchJson(
+      "/api/status",
+      { cache: "no-store" },
+      (data) => data && data.ok === true
+    );
 
     lastKnownServerStatus = data;
     lastSuccessfulStatusFetchAt = Date.now();
