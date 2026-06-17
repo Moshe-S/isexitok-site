@@ -16,6 +16,7 @@ const OPEN_IN_MY_PLACES_EMPTY_HELP =  "כדי להפעיל את האפשרות, 
 const FAV_KEY = "favorites";
 const OPEN_IN_MY_PLACES_KEY = "openInMyPlacesOnLoad";
 const ONBOARDING_SEEN_KEY = "onboardingSeen";
+const MENU_HINT_SEEN_KEY = "menuHintSeen";
 const MIN_STATUS_VISIBLE_MS = 1000;
 const SEARCH_RESULTS_SCROLL_THRESHOLD_REM = 0.7;
 const SEARCH_RESULTS_THRESHOLD_TOLERANCE_PX = 0.5;
@@ -121,8 +122,10 @@ function setMobileNavState(state) {
 
 function openDrawer() {
   if (!sideDrawer || !drawerOverlay) return;
-    sideDrawer.classList.add("is-open");
-    drawerOverlay.classList.add("is-visible");
+  dismissMenuHint();
+
+  sideDrawer.classList.add("is-open");
+  drawerOverlay.classList.add("is-visible");
 
   if (menuToggleBtn) {
     menuToggleBtn.setAttribute("aria-expanded", "true");
@@ -137,7 +140,7 @@ function openDrawer() {
 
 function closeDrawer() {
   if (!sideDrawer || !drawerOverlay) return;
-    sideDrawer.classList.remove("is-open");
+  sideDrawer.classList.remove("is-open");
   drawerOverlay.classList.remove("is-visible");
   
   if (menuToggleBtn) {
@@ -148,6 +151,20 @@ function closeDrawer() {
   if (menuToggleBtn) {
     menuToggleBtn.focus();
   }
+}
+
+function showMenuHintAfterOnboarding() {
+  if (!menuToggleBtn) return;
+  if (localStorage.getItem(MENU_HINT_SEEN_KEY) === "true") return;
+
+  menuToggleBtn.classList.add("menu-hint-visible");
+}
+
+function dismissMenuHint() {
+  if (!menuToggleBtn) return;
+
+  menuToggleBtn.classList.remove("menu-hint-visible");
+  localStorage.setItem(MENU_HINT_SEEN_KEY, "true");
 }
 
 function trapOnboardingFocus(e) {
@@ -1436,7 +1453,13 @@ function closeOnboardingModal() {
       onboardingContent.scrollTop = 0;
     }
 
+  const wasInitialOnboarding = localStorage.getItem(ONBOARDING_SEEN_KEY) !== "true";
+
   localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+
+  if (wasInitialOnboarding) {
+    showMenuHintAfterOnboarding();
+  }
 
   if (onboardingLastTrigger) {
     onboardingLastTrigger.focus();

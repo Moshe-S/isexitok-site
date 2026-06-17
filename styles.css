@@ -1645,6 +1645,19 @@ button:hover {
   color: #f2d2a2;
 }
 
+@media (max-width: 768px) {
+  #menuToggleBtn {
+    transition:
+      border-color 0.8s ease,
+      box-shadow 0.8s ease;
+  }
+
+  #menuToggleBtn.menu-hint-visible {
+    border: 1px solid rgba(79, 134, 255, 0.72);
+    box-shadow: 0 0 0.35rem 0.06rem rgba(79, 134, 255, 0.38);
+  }
+}
+
 #disclaimer a {
   color: #ffd89c;
   text-decoration: underline;
