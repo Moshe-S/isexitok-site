@@ -1732,7 +1732,7 @@ function getSortedItems(items) {
       return aRank - bRank;
     }
 
-    if (aRank === 1 || aRank === 2) {
+    if (aRank === 1 || aRank === 2 || aRank === 3) {
       return Number(bRecord.updatedAt || 0) - Number(aRecord.updatedAt || 0);
     }
 
@@ -1741,10 +1741,11 @@ function getSortedItems(items) {
 }
 
 function getSortLifecycleRank(record) {
-  if (!record) return 3;
+  if (!record) return 4;
   if (record.lifecycle === "active") return 1;
   if (record.lifecycle === "stale") return 2;
-  return 3;
+  if (record.lifecycle === "expired") return 3;
+  return 4;
 }
 
 function updateSortButtonLabel() {
